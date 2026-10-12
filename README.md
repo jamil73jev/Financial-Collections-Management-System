@@ -27,7 +27,14 @@ sigeco/
 
 ## Cómo usar cada carpeta
 
-- **Apps Script:** crear un proyecto nuevo, copiar los archivos `.gs` y `.html` de la instancia, enlazar la hoja de cálculo de esa instancia y ejecutar `Setup` una sola vez. Antes de crear el administrador, definir `ADMIN_INITIAL_PASSWORD` en las propiedades del script.
+- **Apps Script:** crear un proyecto nuevo, copiar los archivos `.gs` y `.html` de la instancia, enlazar la hoja de cálculo de esa instancia y ejecutar `setupSystem` una sola vez. Antes de crear el administrador, definir `ADMIN_INITIAL_PASSWORD` en las propiedades del script.
+
+## Documentación
+
+- [`docs/modelo-de-datos.md`](docs/modelo-de-datos.md): hojas y columnas de cada instancia.
+- [`docs/arquitectura-y-modulos.md`](docs/arquitectura-y-modulos.md): roles, módulos y automatizaciones.
+- [`docs/despliegue.md`](docs/despliegue.md): pasos para instalar una instancia.
+- [`SEGURIDAD.md`](SEGURIDAD.md): qué nunca se sube.
 
 ## Datos
 

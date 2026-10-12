@@ -14,3 +14,7 @@
 ## Datos de prueba
 
 El código de ejemplo (`TestData.gs`) usa datos ficticios. No reemplazarlos por datos reales.
+
+## Acceso a la aplicación web
+
+El `appsscript.json` publica la aplicación con acceso `ANYONE` (cualquier cuenta de Google) y ejecución como el usuario que implementa. La protección real es el inicio de sesión de SIGECO (usuarios, roles y sesiones). Revisar con seguridad de la información si conviene restringir el acceso, por ejemplo a un dominio institucional si la cuenta lo permite.
