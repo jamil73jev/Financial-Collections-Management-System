@@ -1,0 +1,40 @@
+# ============================================================
+# SIGECO — MongoDB en Fly.io
+# App: sigeco-mongo
+# Región: gru (São Paulo — más cercana a Ecuador)
+# ============================================================
+
+app = "sigeco-mongo"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+# Variables de entorno para MongoDB
+[env]
+  MONGO_INITDB_ROOT_USERNAME = "admin"
+  # MONGO_INITDB_ROOT_PASSWORD → configurar via: fly secrets set MONGO_INITDB_ROOT_PASSWORD=...
+  # MONGO_APP_PASSWORD         → configurar via: fly secrets set MONGO_APP_PASSWORD=...
+
+# Volumen persistente para los datos
+[mounts]
+  source = "sigeco_mongo_data"
+  destination = "/data/db"
+
+# Máquina compartida (free tier)
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+# Servicio interno — solo accesible dentro de la red privada de Fly.io
+# El backend se conecta via: sigeco-mongo.internal:27017
+# Para migración local usar: fly proxy 27017:27017 -a sigeco-mongo
+[[services]]
+  internal_port = 27017
+  protocol = "tcp"
+
+  [[services.tcp_checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "30s"

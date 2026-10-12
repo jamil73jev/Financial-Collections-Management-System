@@ -1,0 +1,24 @@
+version: "3.9"
+
+# ============================================================
+# SIGECO — Overrides de Producción
+# Uso: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# ============================================================
+
+services:
+
+  backend:
+    # En producción no exponer el puerto directamente — solo via Nginx
+    ports: []
+    environment:
+      - APP_ENV=production
+    # Reinicio más agresivo en producción
+    restart: always
+
+  mongodb:
+    # No exponer MongoDB al exterior en producción
+    ports: []
+    restart: always
+
+  nginx:
+    restart: always

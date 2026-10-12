@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGECO — Sistema de Seguimiento Recaudatorio</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --azul-inst: #1a237e;
+  --azul-med:  #283593;
+  --azul-clr:  #3949ab;
+  --verde:     #2e7d32;
+  --rojo:      #c62828;
+  --naranja:   #e65100;
+  --amarillo:  #f57f17;
+  --gris:      #546e7a;
+  --bg:        #f4f6f9;
+}
+body { background: var(--bg); font-family: 'Segoe UI', sans-serif; font-size: 0.875rem; }
+#sidebar {
+  width: 230px; min-height: 100vh; background: linear-gradient(180deg, var(--azul-inst) 0%, var(--azul-med) 100%);
+  position: fixed; top: 0; left: 0; z-index: 100; display: flex; flex-direction: column;
+}
+#sidebar .brand { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,.15); }
+#sidebar .brand h6 { color: #fff; margin: 0; font-size: .75rem; font-weight: 700; letter-spacing: .5px; }
+#sidebar .brand small { color: rgba(255,255,255,.6); font-size: .65rem; }
+.nav-link-side { color: rgba(255,255,255,.8)!important; padding: .55rem 1rem; border-radius: 6px; margin: 2px 8px; display: flex; align-items: center; gap: .6rem; font-size: .8rem; transition: background .2s; }
+.nav-link-side:hover, .nav-link-side.active { background: rgba(255,255,255,.15)!important; color: #fff!important; }
+.nav-link-side i { width: 16px; text-align: center; }
+#main { margin-left: 230px; }
+#topbar { background: #fff; border-bottom: 1px solid #e0e0e0; padding: .6rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 99; }
+#topbar .titulo-pagina { font-weight: 600; color: var(--azul-inst); font-size: .9rem; }
+.page { display: none; padding: 1.5rem; }
+.page.active { display: block; }
+.kpi-card { background: #fff; border-radius: 10px; padding: 1.2rem; box-shadow: 0 1px 4px rgba(0,0,0,.08); border-left: 4px solid; }
+.kpi-val { font-size: 2rem; font-weight: 700; line-height: 1; }
+.kpi-lbl { font-size: .75rem; color: #666; margin-top: .3rem; }
+.badge-CRITICA { background: #ffcdd2; color: #b71c1c; }
+.badge-ALTA    { background: #ffe0b2; color: #bf360c; }
+.badge-MEDIA   { background: #fff9c4; color: #f57f17; }
+.badge-BAJA    { background: #e8f5e9; color: #2e7d32; }
+.badge-CRITICO  { background: #ffcdd2; color: #b71c1c; }
+.badge-VENCIDO  { background: #ffe0b2; color: #bf360c; }
+.badge-SIN_MOVIMIENTO { background: #fff9c4; color: #f57f17; }
+.badge-PROXIMO_VENCER { background: #e3f2fd; color: #1565c0; }
+.badge-OK       { background: #e8f5e9; color: #2e7d32; }
+.badge-alerta   { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .7rem; font-weight: 600; }
+.tabla-inst { font-size: .8rem; }
+.tabla-inst thead th { background: var(--azul-inst); color: #fff; font-weight: 600; font-size: .75rem; white-space: nowrap; }
+.tabla-inst tbody tr:hover { background: #e8eaf6; cursor: pointer; }
+.card-sec { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 1rem; }
+.card-sec-header { padding: .8rem 1rem; border-bottom: 1px solid #e0e0e0; font-weight: 600; color: var(--azul-inst); display: flex; align-items: center; gap: .5rem; }
+.card-sec-body { padding: 1rem; }
+/* Login */
+#pg-login { display: none; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, var(--azul-inst) 0%, var(--azul-clr) 100%); margin-left: 0; }
+#pg-login.active { display: flex; }
+.login-card { background: #fff; border-radius: 16px; padding: 2.5rem; width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
+.login-card .logo { text-align: center; margin-bottom: 1.5rem; }
+.login-card .logo h4 { color: var(--azul-inst); font-weight: 700; margin: .5rem 0 0; }
+.login-card .logo small { color: #888; font-size: .75rem; }
+.btn-inst { background: var(--azul-inst); color: #fff; border: none; }
+.btn-inst:hover { background: var(--azul-med); color: #fff; }
+.alerta-row-CRITICO { background: #ffebee!important; }
+.alerta-row-VENCIDO { background: #fff8e1!important; }
+.spinner-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 9999; align-items: center; justify-content: center; }
+.spinner-overlay.show { display: flex; }
+@media (max-width: 768px) {
+  #sidebar { width: 0; overflow: hidden; }
+  #main { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- SPINNER -->
+<div class="spinner-overlay" id="spinner">
+  <div class="text-center text-white">
+    <div class="spinner-border mb-2"></div>
+    <div id="spinner-msg">Procesando...</div>
+  </div>
+</div>
+
+<!-- ===== LOGIN ===== -->
+<div id="pg-login" class="page active">
+  <div class="login-card">
+    <div class="logo">
+      <i class="fas fa-landmark fa-2x text-primary"></i>
+      <h4>SIGECO</h4>
+      <small>Sistema de Seguimiento de Gestión Recaudatoria</small>
+    </div>
+    <div id="login-error" class="alert alert-danger py-2 d-none"></div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Usuario / Correo</label>
+      <input type="text" id="inp-usuario" class="form-control" placeholder="correo@municipio.gob.ec">
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Contraseña</label>
+      <input type="password" id="inp-password" class="form-control" placeholder="Contraseña">
+    </div>
+    <button class="btn btn-inst w-100" onclick="doLogin()">
+      <i class="fas fa-sign-in-alt me-2"></i>Ingresar
+    </button>
+    <div class="text-center mt-3">
+      <small class="text-muted">v<?= PARAMS.VERSION_SISTEMA ?> — Solo cuentas institucionales</small>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP (post-login) ===== -->
+<div id="app" style="display:none;">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="brand">
+      <h6><i class="fas fa-landmark me-2"></i>SIGECO</h6>
+      <small>Seguimiento Recaudatorio</small>
+    </div>
+    <nav class="flex-grow-1 py-2">
+      <a class="nav-link-side" href="#" onclick="navTo('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a class="nav-link-side" href="#" onclick="navTo('expedientes')"><i class="fas fa-folder-open"></i> Expedientes</a>
+      <a class="nav-link-side" href="#" onclick="navTo('gestiones')"><i class="fas fa-tasks"></i> Gestiones</a>
+      <a class="nav-link-side nav-supervisor" href="#" onclick="navTo('seguimiento')"><i class="fas fa-binoculars"></i> Seguimiento</a>
+      <a class="nav-link-side nav-auditor" href="#" onclick="navTo('bitacora')"><i class="fas fa-shield-alt"></i> Bitácora</a>
+      <a class="nav-link-side nav-admin" href="#" onclick="navTo('importar')"><i class="fas fa-file-upload"></i> Importar CSV</a>
+      <a class="nav-link-side nav-admin" href="#" onclick="navTo('usuarios')"><i class="fas fa-users-cog"></i> Usuarios</a>
+    </nav>
+    <div class="p-3 border-top border-secondary">
+      <small class="text-white-50 d-block mb-1" id="sb-usuario">—</small>
+      <small class="text-white-50 d-block mb-2" id="sb-rol">—</small>
+      <button class="btn btn-sm btn-outline-light w-100" onclick="doLogout()">
+        <i class="fas fa-sign-out-alt me-1"></i>Salir
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="topbar">
+      <span class="titulo-pagina" id="topbar-titulo">Dashboard</span>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-warning text-dark" id="topbar-alertas" style="display:none!important"></span>
+        <small class="text-muted" id="topbar-fecha"></small>
+      </div>
+    </div>
+
+    <!-- ===== DASHBOARD ===== -->
+    <div id="pg-dashboard" class="page">
+      <div class="row g-3 mb-3" id="kpi-row"></div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="card-sec">
+            <div class="card-sec-header"><i class="fas fa-chart-pie"></i> Expedientes por Estado</div>
+            <div class="card-sec-body" style="height:260px"><canvas id="chart-estados"></canvas></div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card-sec">
+            <div class="card-sec-header"><i class="fas fa-chart-bar"></i> Gestiones por Tipo (total)</div>
+            <div class="card-sec-body" style="height:260px"><canvas id="chart-tipos"></canvas></div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card-sec">
+            <div class="card-sec-header"><i class="fas fa-trophy"></i> Ranking de Productividad por Funcionario</div>
+            <div class="card-sec-body">
+              <div class="table-responsive">
+                <table class="table tabla-inst mb-0">
+                  <thead><tr><th>#</th><th>Funcionario</th><th>Gestiones este mes</th><th>Total gestiones</th><th>Expedientes asignados</th><th>Vencidos</th></tr></thead>
+                  <tbody id="tabla-productividad"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== EXPEDIENTES ===== -->
+    <div id="pg-expedientes" class="page">
+      <div class="card-sec mb-3">
+        <div class="card-sec-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+              <input type="text" id="flt-exp-busqueda" class="form-control form-control-sm" placeholder="Buscar por RUC, nombre o ID...">
+            </div>
+            <div class="col-md-2">
+              <select id="flt-exp-estado" class="form-select form-select-sm">
+                <option value="">Todos los estados</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <select id="flt-exp-prioridad" class="form-select form-select-sm">
+                <option value="">Todas las prioridades</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <select id="flt-exp-alerta" class="form-select form-select-sm">
+                <option value="">Todas las alertas</option>
+                <option value="CRITICO">Crítico</option>
+                <option value="VENCIDO">Vencido</option>
+                <option value="SIN_MOVIMIENTO">Sin Movimiento</option>
+                <option value="PROXIMO_VENCER">Próximo a Vencer</option>
+                <option value="OK">OK</option>
+              </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+              <button class="btn btn-sm btn-inst flex-grow-1" onclick="buscarExpedientes(1)"><i class="fas fa-search me-1"></i>Buscar</button>
+              <button class="btn btn-sm btn-success" onclick="abrirModalNuevoExpediente()" title="Nuevo Expediente"><i class="fas fa-plus"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-sec">
+        <div class="card-sec-header"><i class="fas fa-folder-open"></i> Expedientes <span class="ms-auto text-muted fw-normal" id="exp-total-lbl"></span></div>
+        <div class="card-sec-body p-0">
+          <div class="table-responsive">
+            <table class="table tabla-inst mb-0">
+              <thead><tr><th>ID</th><th>Contribuyente</th><th>RUC</th><th>Período</th><th>Estado</th><th>Prioridad</th><th>Funcionario</th><th>Días sin mov.</th><th>Alerta</th><th></th></tr></thead>
+              <tbody id="tabla-expedientes"></tbody>
+            </table>
+          </div>
+          <div class="p-3" id="exp-paginacion"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== GESTIONES ===== -->
+    <div id="pg-gestiones" class="page">
+      <div class="card-sec mb-3">
+        <div class="card-sec-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+              <input type="text" id="flt-gest-exp" class="form-control form-control-sm" placeholder="ID Expediente...">
+            </div>
+            <div class="col-md-2">
+              <select id="flt-gest-tipo" class="form-select form-select-sm"><option value="">Todos los tipos</option></select>
+            </div>
+            <div class="col-md-2">
+              <input type="date" id="flt-gest-desde" class="form-control form-control-sm" title="Desde">
+            </div>
+            <div class="col-md-2">
+              <input type="date" id="flt-gest-hasta" class="form-control form-control-sm" title="Hasta">
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-sm btn-inst me-1" onclick="buscarGestiones(1)"><i class="fas fa-search me-1"></i>Buscar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-sec">
+        <div class="card-sec-header"><i class="fas fa-tasks"></i> Historial de Gestiones <span class="ms-auto text-muted fw-normal" id="gest-total-lbl"></span></div>
+        <div class="card-sec-body p-0">
+          <div class="table-responsive">
+            <table class="table tabla-inst mb-0">
+              <thead><tr><th>ID Gestión</th><th>Fecha</th><th>Expediente</th><th>Funcionario</th><th>Tipo</th><th>Resultado</th><th>Prox. Gestión</th><th>Observación</th></tr></thead>
+              <tbody id="tabla-gestiones"></tbody>
+            </table>
+          </div>
+          <div class="p-3" id="gest-paginacion"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SEGUIMIENTO ===== -->
+    <div id="pg-seguimiento" class="page">
+      <div class="row g-3 mb-3" id="seg-resumen-row"></div>
+      <ul class="nav nav-tabs mb-3" id="seg-tabs">
+        <li class="nav-item"><a class="nav-link active" href="#" onclick="mostrarTabSeg('vencidos',this)">Vencidos <span class="badge bg-danger" id="cnt-vencidos">0</span></a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarTabSeg('sinMovimiento',this)">Sin Movimiento <span class="badge bg-warning text-dark" id="cnt-sinmov">0</span></a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarTabSeg('criticos',this)">Críticos <span class="badge bg-secondary" id="cnt-crit">0</span></a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarTabSeg('proximosVencer',this)">Próximos a Vencer <span class="badge bg-info" id="cnt-prox">0</span></a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarTabSeg('porFuncionario',this)">Por Funcionario</a></li>
+      </ul>
+      <div id="seg-contenido"></div>
+    </div>
+
+    <!-- ===== BITÁCORA ===== -->
+    <div id="pg-bitacora" class="page">
+      <div class="card-sec mb-3">
+        <div class="card-sec-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-md-3"><input type="text" id="flt-bit-usuario" class="form-control form-control-sm" placeholder="Filtrar por usuario..."></div>
+            <div class="col-md-2"><input type="text" id="flt-bit-accion" class="form-control form-control-sm" placeholder="Filtrar por acción..."></div>
+            <div class="col-md-2"><input type="date" id="flt-bit-desde" class="form-control form-control-sm"></div>
+            <div class="col-md-2"><input type="date" id="flt-bit-hasta" class="form-control form-control-sm"></div>
+            <div class="col-md-3"><button class="btn btn-sm btn-inst" onclick="buscarBitacora(1)"><i class="fas fa-search me-1"></i>Filtrar</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-sec">
+        <div class="card-sec-header"><i class="fas fa-shield-alt"></i> Bitácora de Auditoría <small class="text-muted ms-2">(solo lectura — registro inmutable)</small> <span class="ms-auto text-muted fw-normal" id="bit-total-lbl"></span></div>
+        <div class="card-sec-body p-0">
+          <div class="table-responsive">
+            <table class="table tabla-inst mb-0">
+              <thead><tr><th>Fecha/Hora</th><th>Usuario</th><th>Rol</th><th>Hoja</th><th>Expediente</th><th>Acción</th><th>Campo</th><th>Valor Anterior</th><th>Valor Nuevo</th><th>Contexto</th></tr></thead>
+              <tbody id="tabla-bitacora"></tbody>
+            </table>
+          </div>
+          <div class="p-3" id="bit-paginacion"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== IMPORTAR CSV ===== -->
+    <div id="pg-importar" class="page">
+      <div class="card-sec mb-3">
+        <div class="card-sec-header"><i class="fas fa-file-upload"></i> Importar Contribuyentes desde CSV</div>
+        <div class="card-sec-body">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Use <strong>preparar_csv.py</strong> para generar el archivo CSV filtrado desde la base de datos.
+            El archivo debe contener al menos las columnas: <code>RUC</code>, <code>NOMBRE_CONTRIBUYENTE</code>.
+          </div>
+          <div id="import-stats" class="mb-3"></div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Archivo CSV</label>
+            <input type="file" id="import-file" class="form-control" accept=".csv">
+            <div class="form-text">Archivo generado por preparar_csv.py (UTF-8 con BOM)</div>
+          </div>
+          <div class="mb-3">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="import-reemplazar">
+              <label class="form-check-label" for="import-reemplazar">
+                <strong>Reemplazar</strong> datos existentes (si no se marca, se agregan nuevos registros)
+              </label>
+            </div>
+          </div>
+          <div id="import-preview" class="mb-3" style="display:none">
+            <h6>Vista previa (primeras 5 filas)</h6>
+            <div class="table-responsive"><table class="table tabla-inst" id="tabla-preview"></table></div>
+            <button class="btn btn-inst" onclick="confirmarImportacion()"><i class="fas fa-check me-2"></i>Confirmar Importación</button>
+            <button class="btn btn-secondary ms-2" onclick="cancelarImportacion()">Cancelar</button>
+          </div>
+          <div id="import-resultado" class="mb-3"></div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-inst" onclick="leerCSV()" id="btn-leer-csv">
+              <i class="fas fa-eye me-2"></i>Previsualizar CSV
+            </button>
+            <button class="btn btn-success" onclick="ejecutarAsignacionAuto()" id="btn-auto-assign">
+              <i class="fas fa-robot me-2"></i>Asignación Automática
+            </button>
+          </div>
+          <hr class="my-4">
+          <div class="mt-2">
+            <h6 class="text-secondary fw-bold small"><i class="fas fa-vial me-2"></i>Herramientas de Testing</h6>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-danger btn-sm" onclick="cargarDatosTesting()">
+                <i class="fas fa-database me-1"></i>Cargar Mock Data
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="limpiarDatosTesting()">
+                <i class="fas fa-trash-alt me-1"></i>Limpiar Testing
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== USUARIOS ===== -->
+    <div id="pg-usuarios" class="page">
+      <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-sm btn-inst" onclick="abrirModalNuevoUsuario()"><i class="fas fa-user-plus me-2"></i>Nuevo Usuario</button>
+      </div>
+      <div class="card-sec">
+        <div class="card-sec-header"><i class="fas fa-users-cog"></i> Gestión de Usuarios</div>
+        <div class="card-sec-body p-0">
+          <div class="table-responsive">
+            <table class="table tabla-inst mb-0">
+              <thead><tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th><th>Área</th><th>Estado</th><th>Último Acceso</th><th>Acciones</th></tr></thead>
+              <tbody id="tabla-usuarios"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ===== MODAL NUEVO EXPEDIENTE ===== -->
+<div class="modal fade" id="modal-exp" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h6 class="modal-title"><i class="fas fa-folder-plus me-2"></i>Nuevo Expediente</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">RUC / Cédula *</label>
+            <div class="input-group">
+              <input type="text" id="exp-ruc" class="form-control" placeholder="Ingrese RUC o cédula">
+              <button class="btn btn-outline-secondary" onclick="buscarContribuyente()" title="Buscar en base"><i class="fas fa-search"></i></button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Contribuyente *</label>
+            <input type="text" id="exp-contribuyente" class="form-control" placeholder="Nombre del contribuyente">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Período *</label>
+            <input type="text" id="exp-periodo" class="form-control" placeholder="e.g. 2023, 2022-S1">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Tipo de Obligación *</label>
+            <select id="exp-tipo-oblig" class="form-select"></select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Código Interno</label>
+            <input type="text" id="exp-codigo" class="form-control" placeholder="Opcional">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Estado *</label>
+            <select id="exp-estado" class="form-select"></select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Prioridad *</label>
+            <select id="exp-prioridad" class="form-select"></select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Funcionario Asignado</label>
+            <select id="exp-funcionario" class="form-select"><option value="">Sin asignar</option></select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Observación General</label>
+            <textarea id="exp-obs" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <div id="exp-error" class="alert alert-danger mt-3 d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-inst" onclick="guardarExpediente()"><i class="fas fa-save me-2"></i>Guardar Expediente</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL DETALLE EXPEDIENTE ===== -->
+<div class="modal fade" id="modal-exp-detalle" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h6 class="modal-title" id="modal-exp-detalle-titulo"><i class="fas fa-folder-open me-2"></i>Detalle del Expediente</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="detalle-exp-info" class="row g-3 mb-3"></div>
+        <div class="d-flex gap-2 mb-3">
+          <button class="btn btn-sm btn-inst" onclick="abrirModalNuevaGestion()"><i class="fas fa-plus me-1"></i>Registrar Gestión</button>
+          <button class="btn btn-sm btn-outline-warning" onclick="abrirModalReasignar()" id="btn-reasignar" style="display:none"><i class="fas fa-user-edit me-1"></i>Reasignar</button>
+          <button class="btn btn-sm btn-outline-danger" onclick="abrirModalCerrar()" id="btn-cerrar" style="display:none"><i class="fas fa-times-circle me-1"></i>Cerrar</button>
+        </div>
+        <h6 class="text-muted mb-2">Historial de Gestiones</h6>
+        <div class="table-responsive">
+          <table class="table tabla-inst mb-0">
+            <thead><tr><th>Fecha</th><th>Tipo</th><th>Resultado</th><th>Funcionario</th><th>Próx. Gestión</th><th>Observación</th></tr></thead>
+            <tbody id="tabla-historial"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL NUEVA GESTIÓN ===== -->
+<div class="modal fade" id="modal-gestion" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h6 class="modal-title"><i class="fas fa-tasks me-2"></i>Registrar Gestión</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+          <small class="text-muted">Expediente: </small><strong id="gest-exp-id">—</strong>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Tipo de Gestión *</label>
+            <select id="gest-tipo" class="form-select"></select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Resultado *</label>
+            <select id="gest-resultado" class="form-select"></select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Estado post-gestión</label>
+            <select id="gest-estado-post" class="form-select"><option value="">Sin cambio de estado</option></select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Fecha próxima gestión</label>
+            <input type="date" id="gest-fecha-prox" class="form-control">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Observación</label>
+            <textarea id="gest-obs" class="form-control" rows="3"></textarea>
+          </div>
+        </div>
+        <div id="gest-error" class="alert alert-danger mt-3 d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" onclick="guardarGestion()"><i class="fas fa-save me-2"></i>Registrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL NUEVO USUARIO ===== -->
+<div class="modal fade" id="modal-usuario" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h6 class="modal-title"><i class="fas fa-user-plus me-2"></i>Nuevo Usuario</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Nombre Completo *</label><input type="text" id="usr-nombre" class="form-control"></div>
+          <div class="col-md-6"><label class="form-label">Correo Institucional *</label><input type="email" id="usr-correo" class="form-control" placeholder="nombre@municipio.gob.ec"></div>
+          <div class="col-md-6"><label class="form-label">Rol *</label><select id="usr-rol" class="form-select"></select></div>
+          <div class="col-md-6"><label class="form-label">Área</label><input type="text" id="usr-area" class="form-control"></div>
+          <div class="col-md-6"><label class="form-label">Contraseña *</label><input type="password" id="usr-pass" class="form-control" placeholder="Mín. 8 caracteres"></div>
+        </div>
+        <div id="usr-error" class="alert alert-danger mt-3 d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-inst" onclick="guardarUsuario()"><i class="fas fa-save me-2"></i>Crear Usuario</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ============================================================
+// ESTADO GLOBAL
+// ============================================================
+let SESION = null;
+let TOKEN  = null;
+let CAT    = {};      // catálogos
+let _expDetalleId = null;
+let _csvData = null;
+let _chartEstados = null;
+let _chartTipos   = null;
+
+// ============================================================
+// UTILIDADES
+// ============================================================
+const call = (action, payload) => new Promise((res, rej) => {
+  google.script.run
+    .withSuccessHandler(r => res(r))
+    .withFailureHandler(e => rej(e))
+    .dispatch(action, payload || {});
+});
+
+const showSpinner = (msg) => {
+  document.getElementById('spinner-msg').textContent = msg || 'Procesando...';
+  document.getElementById('spinner').classList.add('show');
+};
+const hideSpinner = () => document.getElementById('spinner').classList.remove('show');
+
+const showAlert = (tipo, msg) => {
+  const t = {
+    success: 'alert-success', danger: 'alert-danger',
+    warning: 'alert-warning', info: 'alert-info'
+  }[tipo] || 'alert-info';
+  const d = document.createElement('div');
+  d.className = 'alert ' + t + ' alert-dismissible position-fixed bottom-0 end-0 m-3';
+  d.style.zIndex = 9998;
+  d.innerHTML = msg + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 5000);
+};
+
+const badge = (texto, clase) =>
+  `<span class="badge-alerta badge-${texto}">${texto.replace(/_/g,' ')}</span>`;
+
+const fmt = (v) => v ? String(v).substring(0,19).replace('T',' ') : '—';
+const fmtDate = (v) => v ? String(v).substring(0,10) : '—';
+
+function poblarSelect(id, opciones, vacio) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  sel.innerHTML = (vacio ? `<option value="">${vacio}</option>` : '') +
+    opciones.map(o => `<option value="${o}">${o.replace(/_/g,' ')}</option>`).join('');
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+async function doLogin() {
+  const usuario  = document.getElementById('inp-usuario').value.trim();
+  const password = document.getElementById('inp-password').value;
+  const errDiv   = document.getElementById('login-error');
+  errDiv.classList.add('d-none');
+
+  if (!usuario || !password) {
+    errDiv.textContent = 'Ingrese usuario y contraseña.';
+    errDiv.classList.remove('d-none');
+    return;
+  }
+
+  showSpinner('Autenticando...');
+  try {
+    const r = await call('login', { usuario, password });
+    if (!r.ok) {
+      errDiv.textContent = r.error || 'Error de autenticación.';
+      errDiv.classList.remove('d-none');
+    } else {
+      TOKEN  = r.token;
+      SESION = r.sesion;
+      iniciarApp();
+    }
+  } catch (e) {
+    errDiv.textContent = 'Error de conexión. Intente nuevamente.';
+    errDiv.classList.remove('d-none');
+  } finally { hideSpinner(); }
+}
+
+async function doLogout() {
+  if (TOKEN) await call('logout', { token: TOKEN }).catch(() => {});
+  TOKEN  = null;
+  SESION = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('pg-login').classList.add('active');
+  document.getElementById('inp-password').value = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('pg-login').classList.contains('active')) doLogin();
+});
+
+// ============================================================
+// INICIO DE APP
+// ============================================================
+async function iniciarApp() {
+  document.getElementById('pg-login').classList.remove('active');
+  document.getElementById('app').style.display = '';
+
+  // Datos de sidebar
+  document.getElementById('sb-usuario').textContent = SESION.nombre || SESION.usuario;
+  document.getElementById('sb-rol').textContent = SESION.rolLabel || SESION.rol;
+  document.getElementById('topbar-fecha').textContent = new Date().toLocaleDateString('es-EC');
+
+  // Visibilidad de menú según rol
+  const nivel = SESION.nivel;
+  document.querySelectorAll('.nav-supervisor').forEach(el =>
+    el.style.display = nivel >= 3 ? '' : 'none');
+  document.querySelectorAll('.nav-auditor').forEach(el =>
+    el.style.display = nivel >= 1 ? '' : 'none');
+  document.querySelectorAll('.nav-admin').forEach(el =>
+    el.style.display = nivel >= 4 ? '' : 'none');
+
+  // Cargar catálogos
+  try {
+    const r = await call('getCatalogos', { token: TOKEN });
+    if (r.ok) CAT = r.catalogos;
+  } catch (e) {}
+
+  // Poblar selects con catálogos
+  poblarSelect('flt-exp-estado', CAT.ESTADOS_EXPEDIENTE || [], 'Todos los estados');
+  poblarSelect('flt-exp-prioridad', CAT.PRIORIDADES || [], 'Todas las prioridades');
+  poblarSelect('flt-gest-tipo', CAT.TIPOS_GESTION || [], 'Todos los tipos');
+  poblarSelect('exp-tipo-oblig', CAT.TIPOS_OBLIGACION || []);
+  poblarSelect('exp-estado', CAT.ESTADOS_EXPEDIENTE || []);
+  poblarSelect('exp-prioridad', CAT.PRIORIDADES || []);
+  poblarSelect('gest-tipo', CAT.TIPOS_GESTION || []);
+  poblarSelect('gest-resultado', CAT.RESULTADOS_GESTION || []);
+  poblarSelect('gest-estado-post', CAT.ESTADOS_EXPEDIENTE || [], 'Sin cambio de estado');
+  poblarSelect('usr-rol', CAT.ROLES || []);
+
+  navTo('dashboard');
+}
+
+// ============================================================
+// NAVEGACIÓN
+// ============================================================
+function navTo(pagina) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link-side').forEach(a => a.classList.remove('active'));
+
+  const pg = document.getElementById('pg-' + pagina);
+  if (pg) pg.classList.add('active');
+
+  const titulos = {
+    dashboard:   'Dashboard',
+    expedientes: 'Expedientes',
+    gestiones:   'Gestiones',
+    seguimiento: 'Seguimiento',
+    bitacora:    'Bitácora de Auditoría',
+    importar:    'Importar Contribuyentes',
+    usuarios:    'Gestión de Usuarios'
+  };
+  document.getElementById('topbar-titulo').textContent = titulos[pagina] || pagina;
+
+  // Auto-cargar datos de la página
+  if (pagina === 'dashboard')   cargarDashboard();
+  if (pagina === 'expedientes') buscarExpedientes(1);
+  if (pagina === 'gestiones')   buscarGestiones(1);
+  if (pagina === 'seguimiento') cargarSeguimiento();
+  if (pagina === 'bitacora')    buscarBitacora(1);
+  if (pagina === 'usuarios')    cargarUsuarios();
+  if (pagina === 'importar')    cargarEstadisticasImport();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+async function cargarDashboard() {
+  showSpinner('Cargando dashboard...');
+  try {
+    const r = await call('getDashboardKPIs', { token: TOKEN });
+    if (!r.ok) { showAlert('danger', r.error); return; }
+    const k = r.kpis;
+
+    // KPI Cards
+    const kpis = [
+      { val: k.expActivos,           lbl: 'Expedientes Activos',     color: '#1a237e', icon: 'fa-folder-open' },
+      { val: k.expSinMovimiento,     lbl: 'Sin Movimiento',           color: '#f57f17', icon: 'fa-pause-circle' },
+      { val: k.expVencidos,          lbl: 'Vencidos',                 color: '#c62828', icon: 'fa-exclamation-triangle' },
+      { val: k.expCriticos,          lbl: 'Críticos',                 color: '#b71c1c', icon: 'fa-fire' },
+      { val: k.gestionesMes,         lbl: 'Gestiones este Mes',       color: '#2e7d32', icon: 'fa-tasks' },
+      { val: k.porcentajeSeguimientoOportuno + '%', lbl: 'Seguimiento Oportuno', color: '#1565c0', icon: 'fa-check-circle' },
+      { val: k.promedioDiasSinMovimiento, lbl: 'Días Prom. sin Mov.', color: '#6a1b9a', icon: 'fa-clock' },
+      { val: k.totalExpedientes,     lbl: 'Total Expedientes',        color: '#546e7a', icon: 'fa-database' }
+    ];
+    document.getElementById('kpi-row').innerHTML = kpis.map(ki => `
+      <div class="col-md-3 col-sm-6">
+        <div class="kpi-card" style="border-color:${ki.color}">
+          <div class="d-flex align-items-center gap-3">
+            <i class="fas ${ki.icon} fa-2x" style="color:${ki.color};opacity:.7"></i>
+            <div>
+              <div class="kpi-val" style="color:${ki.color}">${ki.val ?? 0}</div>
+              <div class="kpi-lbl">${ki.lbl}</div>
+            </div>
+          </div>
+        </div>
+      </div>`).join('');
+
+    // Gráfico estados
+    const estadosLabels = Object.keys(k.porEstado || {});
+    const estadosData   = Object.values(k.porEstado || {});
+    if (_chartEstados) _chartEstados.destroy();
+    _chartEstados = new Chart(document.getElementById('chart-estados'), {
+      type: 'doughnut',
+      data: {
+        labels: estadosLabels.map(l => l.replace(/_/g,' ')),
+        datasets: [{ data: estadosData, backgroundColor: ['#1a237e','#2196f3','#4caf50','#ff9800','#f44336','#9c27b0','#607d8b'] }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 10 } } } } }
+    });
+
+    // Gráfico tipos de gestión
+    const tiposLabels = Object.keys(k.gestionesPorTipo || {});
+    const tiposData   = Object.values(k.gestionesPorTipo || {});
+    if (_chartTipos) _chartTipos.destroy();
+    _chartTipos = new Chart(document.getElementById('chart-tipos'), {
+      type: 'bar',
+      data: {
+        labels: tiposLabels.map(l => l.replace(/_/g,' ')),
+        datasets: [{ label: 'Gestiones', data: tiposData, backgroundColor: '#3949ab' }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+
+    // Tabla productividad
+    const prod = k.productividadFuncionario || [];
+    document.getElementById('tabla-productividad').innerHTML = prod.length === 0
+      ? '<tr><td colspan="6" class="text-center text-muted">Sin datos</td></tr>'
+      : prod.map((p, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${p.funcionario}</td>
+            <td><strong>${p.gestionesMes}</strong></td>
+            <td>${p.totalGestiones}</td>
+            <td>${p.expedientesAsignados}</td>
+            <td>${p.expedientesVencidos > 0 ? '<span class="text-danger fw-bold">' + p.expedientesVencidos + '</span>' : '0'}</td>
+          </tr>`).join('');
+
+  } catch (e) { showAlert('danger', 'Error cargando dashboard: ' + e.message); }
+  finally { hideSpinner(); }
+}
+
+// ============================================================
+// EXPEDIENTES
+// ============================================================
+async function buscarExpedientes(pagina) {
+  showSpinner('Buscando expedientes...');
+  try {
+    const filtros = {
+      busqueda:  document.getElementById('flt-exp-busqueda').value.trim(),
+      estado:    document.getElementById('flt-exp-estado').value,
+      prioridad: document.getElementById('flt-exp-prioridad').value,
+      alerta:    document.getElementById('flt-exp-alerta').value
+    };
+    const r = await call('listExpedientes', { token: TOKEN, pagina, filtros });
+    if (!r.ok) { showAlert('danger', r.error); return; }
+
+    document.getElementById('exp-total-lbl').textContent = r.total + ' expediente(s)';
+    const tbody = document.getElementById('tabla-expedientes');
+    tbody.innerHTML = r.expedientes.length === 0
+      ? '<tr><td colspan="10" class="text-center text-muted py-3">Sin resultados</td></tr>'
+      : r.expedientes.map(e => `
+          <tr class="${e.alertaEstado === 'CRITICO' ? 'alerta-row-CRITICO' : e.alertaEstado === 'VENCIDO' ? 'alerta-row-VENCIDO' : ''}"
+              onclick="verDetalleExpediente('${e.id}')">
+            <td><small class="text-muted">${e.id}</small></td>
+            <td><strong>${e.contribuyente || '—'}</strong></td>
+            <td>${e.ruc || '—'}</td>
+            <td>${e.periodo || '—'}</td>
+            <td><span class="badge bg-secondary">${(e.estadoExpediente||'').replace(/_/g,' ')}</span></td>
+            <td>${badge(e.prioridad || 'BAJA', 'prioridad')}</td>
+            <td>${e.funcionarioAsignado || '<em class="text-muted">Sin asignar</em>'}</td>
+            <td class="text-center">${e.diasSinMovimiento || 0}</td>
+            <td>${badge(e.alertaEstado || 'OK', 'alerta')}</td>
+            <td><i class="fas fa-chevron-right text-muted"></i></td>
+          </tr>`).join('');
+
+    renderPaginacion('exp-paginacion', r.pagina, r.total, r.pageSize, buscarExpedientes);
+  } catch (e) { showAlert('danger', 'Error: ' + e.message); }
+  finally { hideSpinner(); }
+}
+
+async function verDetalleExpediente(id) {
+  _expDetalleId = id;
+  showSpinner('Cargando detalle...');
+  try {
+    const [rExp, rHist] = await Promise.all([
+      call('getExpediente', { token: TOKEN, idExpediente: id }),
+      call('getHistorialExpediente', { token: TOKEN, idExpediente: id })
+    ]);
+    if (!rExp.ok) { showAlert('danger', rExp.error); return; }
+
+    const e = rExp.expediente;
+    document.getElementById('modal-exp-detalle-titulo').innerHTML =
+      `<i class="fas fa-folder-open me-2"></i>${e.id} — ${e.contribuyente}`;
+
+    document.getElementById('detalle-exp-info').innerHTML = [
+      { lbl: 'RUC', val: e.ruc },
+      { lbl: 'Período', val: e.periodo },
+      { lbl: 'Tipo Obligación', val: e.tipoObligacion },
+      { lbl: 'Estado', val: `<span class="badge bg-secondary">${(e.estadoExpediente||'').replace(/_/g,' ')}</span>` },
+      { lbl: 'Prioridad', val: badge(e.prioridad || 'BAJA', 'prioridad') },
+      { lbl: 'Funcionario', val: e.funcionarioAsignado || '(Sin asignar)' },
+      { lbl: 'Última Gestión', val: fmtDate(e.fechaUltimaGestion) },
+      { lbl: 'Próxima Gestión', val: fmtDate(e.fechaProximaGestion) },
+      { lbl: 'Días sin Mov.', val: e.diasSinMovimiento || 0 },
+      { lbl: 'Alerta', val: badge(e.alertaEstado || 'OK', 'alerta') },
+      { lbl: 'Último Resultado', val: e.resultadoUltimaGest || '—' },
+      { lbl: 'Observación', val: e.observacionGeneral || '—' }
+    ].map(i => `<div class="col-md-3 col-sm-6"><small class="text-muted d-block">${i.lbl}</small><strong>${i.val}</strong></div>`).join('');
+
+    // Historial
+    const hists = (rHist && rHist.ok) ? (rHist.gestiones || []) : [];
+    document.getElementById('tabla-historial').innerHTML = hists.length === 0
+      ? '<tr><td colspan="6" class="text-center text-muted">Sin gestiones registradas</td></tr>'
+      : hists.map(g => `
+          <tr>
+            <td>${fmtDate(g.fechaRegistro)}</td>
+            <td>${(g.tipoGestion||'').replace(/_/g,' ')}</td>
+            <td><span class="badge bg-info text-dark">${(g.resultado||'').replace(/_/g,' ')}</span></td>
+            <td>${g.funcionario || '—'}</td>
+            <td>${fmtDate(g.fechaProxima)}</td>
+            <td><small>${g.observacion || '—'}</small></td>
+          </tr>`).join('');
+
+    // Mostrar botones según rol
+    const nivel = SESION.nivel;
+    document.getElementById('btn-reasignar').style.display = nivel >= 3 ? '' : 'none';
+    document.getElementById('btn-cerrar').style.display    = nivel >= 3 ? '' : 'none';
+
+    new bootstrap.Modal(document.getElementById('modal-exp-detalle')).show();
+  } catch (err) { showAlert('danger', 'Error: ' + err.message); }
+  finally { hideSpinner(); }
+}
+
+async function abrirModalNuevoExpediente() {
+  // Cargar gestores
+  try {
+    const r = await call('getGestoresActivos', { token: TOKEN });
+    const sel = document.getElementById('exp-funcionario');
+    sel.innerHTML = '<option value="">Sin asignar</option>';
+    if (r.ok) r.gestores.forEach(g =>
+      sel.innerHTML += `<option value="${g.correo}">${g.nombre} (${g.rol})</option>`
+    );
+  } catch (e) {}
+
+  document.getElementById('exp-error').classList.add('d-none');
+  ['exp-ruc','exp-contribuyente','exp-periodo','exp-codigo','exp-obs'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  new bootstrap.Modal(document.getElementById('modal-exp')).show();
+}
+
+async function buscarContribuyente() {
+  const ruc = document.getElementById('exp-ruc').value.trim();
+  if (!ruc) return;
+  showSpinner('Buscando contribuyente...');
+  try {
+    const r = await call('getContribuyentePorRUC', { token: TOKEN, ruc });
+    if (r.ok) {
+      document.getElementById('exp-contribuyente').value = r.contribuyente.nombre || '';
+      showAlert('success', 'Contribuyente encontrado: ' + r.contribuyente.nombre);
+    } else {
+      showAlert('warning', 'RUC no encontrado en la base. Ingrese el nombre manualmente.');
+    }
+  } catch (e) {} finally { hideSpinner(); }
+}
+
+async function guardarExpediente() {
+  const errDiv = document.getElementById('exp-error');
+  errDiv.classList.add('d-none');
+
+  const datos = {
+    ruc:                document.getElementById('exp-ruc').value.trim(),
+    contribuyente:      document.getElementById('exp-contribuyente').value.trim(),
+    periodo:            document.getElementById('exp-periodo').value.trim(),
+    tipoObligacion:     document.getElementById('exp-tipo-oblig').value,
+    estadoExpediente:   document.getElementById('exp-estado').value,
+    prioridad:          document.getElementById('exp-prioridad').value,
+    funcionarioAsignado:document.getElementById('exp-funcionario').value,
+    codigoInterno:      document.getElementById('exp-codigo').value.trim(),
+    observacionGeneral: document.getElementById('exp-obs').value.trim()
+  };
+
+  showSpinner('Guardando expediente...');
+  try {
+    const r = await call('createExpediente', { token: TOKEN, datos });
+    if (!r.ok) {
+      errDiv.textContent = r.error;
+      errDiv.classList.remove('d-none');
+    } else {
+      bootstrap.Modal.getInstance(document.getElementById('modal-exp')).hide();
+      showAlert('success', 'Expediente creado: ' + r.id);
+      buscarExpedientes(1);
+    }
+  } catch (e) {
+    errDiv.textContent = 'Error: ' + e.message;
+    errDiv.classList.remove('d-none');
+  } finally { hideSpinner(); }
+}
+
+// ============================================================
+// GESTIONES
+// ============================================================
+async function buscarGestiones(pagina) {
+  showSpinner('Cargando gestiones...');
+  try {
+    const filtros = {
+      idExpediente: document.getElementById('flt-gest-exp').value.trim(),
+      tipo:         document.getElementById('flt-gest-tipo').value,
+      desde:        document.getElementById('flt-gest-desde').value,
+      hasta:        document.getElementById('flt-gest-hasta').value
+    };
+    const r = await call('getGestiones', { token: TOKEN, pagina, filtros });
+    if (!r.ok) { showAlert('danger', r.error); return; }
+
+    document.getElementById('gest-total-lbl').textContent = r.total + ' gestión(es)';
+    document.getElementById('tabla-gestiones').innerHTML = r.gestiones.length === 0
+      ? '<tr><td colspan="8" class="text-center text-muted py-3">Sin resultados</td></tr>'
+      : r.gestiones.map(g => `
+          <tr>
+            <td><small>${g.id}</small></td>
+            <td>${fmtDate(g.fechaRegistro)}</td>
+            <td><a href="#" onclick="verDetalleExpediente('${g.idExpediente}');return false">${g.idExpediente}</a></td>
+            <td>${g.funcionario || '—'}</td>
+            <td>${(g.tipoGestion||'').replace(/_/g,' ')}</td>
+            <td><span class="badge bg-info text-dark">${(g.resultado||'').replace(/_/g,' ')}</span></td>
+            <td>${fmtDate(g.fechaProxima)}</td>
+            <td><small>${g.observacion || '—'}</small></td>
+          </tr>`).join('');
+
+    renderPaginacion('gest-paginacion', r.pagina, r.total, r.pageSize, buscarGestiones);
+  } catch (e) { showAlert('danger', 'Error: ' + e.message); }
+  finally { hideSpinner(); }
+}
+
+function abrirModalNuevaGestion() {
+  if (!_expDetalleId) return;
+  document.getElementById('gest-exp-id').textContent = _expDetalleId;
+  document.getElementById('gest-error').classList.add('d-none');
+  ['gest-obs','gest-fecha-prox'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('gest-tipo').selectedIndex = 0;
+  document.getElementById('gest-resultado').selectedIndex = 0;
+  document.getElementById('gest-estado-post').selectedIndex = 0;
+  new bootstrap.Modal(document.getElementById('modal-gestion')).show();
+}
+
+async function guardarGestion() {
+  const errDiv = document.getElementById('gest-error');
+  errDiv.classList.add('d-none');
+
+  const datos = {
+    idExpediente:        _expDetalleId,
+    tipoGestion:         document.getElementById('gest-tipo').value,
+    resultado:           document.getElementById('gest-resultado').value,
+    observacion:         document.getElementById('gest-obs').value.trim(),
+    fechaProximaGestion: document.getElementById('gest-fecha-prox').value,
+    estadoPostGestion:   document.getElementById('gest-estado-post').value
+  };
+
+  showSpinner('Registrando gestión...');
+  try {
+    const r = await call('registerGestion', { token: TOKEN, datos });
+    if (!r.ok) {
+      errDiv.textContent = r.error;
+      errDiv.classList.remove('d-none');
+    } else {
+      bootstrap.Modal.getInstance(document.getElementById('modal-gestion')).hide();
+      showAlert('success', 'Gestión registrada: ' + r.id);
+      // Refrescar detalle del expediente
+      verDetalleExpediente(_expDetalleId);
+    }
+  } catch (e) {
+    errDiv.textContent = 'Error: ' + e.message;
+    errDiv.classList.remove('d-none');
+  } finally { hideSpinner(); }
+}
+
+// ============================================================
+// SEGUIMIENTO
+// ============================================================
+let _segData = null;
+
+async function cargarSeguimiento() {
+  showSpinner('Cargando seguimiento...');
+  try {
+    const r = await call('getSeguimientoData', { token: TOKEN });
+    if (!r.ok) { showAlert('danger', r.error); return; }
+    _segData = r.data;
+
+    // Resumen cards
+    const res = _segData.resumen || {};
+    document.getElementById('seg-resumen-row').innerHTML = [
+      { val: res.total,    lbl: 'Total Expedientes', color: '#1a237e' },
+      { val: res.activos,  lbl: 'Activos',           color: '#2e7d32' },
+      { val: res.criticos, lbl: 'Prioridad Crítica', color: '#c62828' },
+      { val: res.alertas,  lbl: 'Con Alerta',        color: '#e65100' }
+    ].map(k => `
+      <div class="col-md-3">
+        <div class="kpi-card" style="border-color:${k.color}">
+          <div class="kpi-val" style="color:${k.color}">${k.val || 0}</div>
+          <div class="kpi-lbl">${k.lbl}</div>
+        </div>
+      </div>`).join('');
+
+    // Contadores tabs
+    document.getElementById('cnt-vencidos').textContent = (_segData.vencidos || []).length;
+    document.getElementById('cnt-sinmov').textContent   = (_segData.sinMovimiento || []).length;
+    document.getElementById('cnt-crit').textContent     = (_segData.criticos || []).length;
+    document.getElementById('cnt-prox').textContent     = (_segData.proximosVencer || []).length;
+
+    mostrarTabSeg('vencidos', document.querySelector('#seg-tabs .nav-link.active'));
+  } catch (e) { showAlert('danger', 'Error: ' + e.message); }
+  finally { hideSpinner(); }
+}
+
+function mostrarTabSeg(categoria, el) {
+  if (el) {
+    document.querySelectorAll('#seg-tabs .nav-link').forEach(a => a.classList.remove('active'));
+    el.classList.add('active');
+  }
+  if (!_segData) return;
+
+  const datos = _segData[categoria] || [];
+  let html = '';
+
+  if (categoria === 'porFuncionario') {
+    html = `<table class="table tabla-inst"><thead><tr><th>Funcionario</th><th>Total</th><th>Vencidos</th><th>En Gestión</th></tr></thead><tbody>` +
+      (datos.length === 0 ? '<tr><td colspan="4" class="text-center text-muted">Sin datos</td></tr>' :
+        datos.map(f => `<tr><td>${f.funcionario}</td><td>${f.total}</td><td>${f.vencidos > 0 ? '<span class="text-danger fw-bold">'+f.vencidos+'</span>' : 0}</td><td>${f.enGestion}</td></tr>`).join('')
+      ) + '</tbody></table>';
+  } else {
+    html = `<table class="table tabla-inst"><thead><tr><th>ID</th><th>Contribuyente</th><th>RUC</th><th>Período</th><th>Estado</th><th>Prioridad</th><th>Funcionario</th><th>Días sin Mov.</th><th>Próx. Gestión</th></tr></thead><tbody>` +
+      (datos.length === 0 ? '<tr><td colspan="9" class="text-center text-muted py-3">Sin expedientes en esta categoría</td></tr>' :
+        datos.map(e => `
+          <tr onclick="verDetalleExpediente('${e.id}')">
+            <td><small>${e.id}</small></td>
+            <td>${e.contribuyente || '—'}</td>
+            <td>${e.ruc || '—'}</td>
+            <td>${e.periodo || '—'}</td>
+            <td><span class="badge bg-secondary">${(e.estado||'').replace(/_/g,' ')}</span></td>
+            <td>${badge(e.prioridad||'BAJA','prioridad')}</td>
+            <td>${e.funcionario || '<em class="text-muted">Sin asignar</em>'}</td>
+            <td class="text-center fw-bold ${e.diasSinMovimiento > 30 ? 'text-danger' : ''}">${e.diasSinMovimiento || 0}</td>
+            <td>${fmtDate(e.fechaProxima)}</td>
+          </tr>`).join('')
+      ) + '</tbody></table>';
+  }
+
+  document.getElementById('seg-contenido').innerHTML =
+    '<div class="card-sec"><div class="card-sec-body p-0"><div class="table-responsive">' + html + '</div></div></div>';
+}
+
+// ============================================================
+// BITÁCORA
+// ============================================================
+async function buscarBitacora(pagina) {
+  showSpinner('Cargando bitácora...');
+  try {
+    const filtros = {
+      usuario: document.getElementById('flt-bit-usuario').value.trim(),
+      accion:  document.getElementById('flt-bit-accion').value.trim(),
+      desde:   document.getElementById('flt-bit-desde').value,
+      hasta:   document.getElementById('flt-bit-hasta').value
+    };
+    const r = await call('getBitacora', { token: TOKEN, pagina, filtros });
+    if (!r.ok) { showAlert('danger', r.error); return; }
+
+    document.getElementById('bit-total-lbl').textContent = r.total + ' registro(s)';
+    document.getElementById('tabla-bitacora').innerHTML = r.logs.length === 0
+      ? '<tr><td colspan="10" class="text-center text-muted py-3">Sin registros</td></tr>'
+      : r.logs.map(l => `
+          <tr>
+            <td><small>${fmt(l.fechaHora)}</small></td>
+            <td>${l.usuario || '—'}</td>
+            <td><span class="badge bg-secondary">${l.rol || '—'}</span></td>
+            <td>${l.hoja || '—'}</td>
+            <td><small>${l.idExpediente || '—'}</small></td>
+            <td>${l.accion || '—'}</td>
+            <td><small>${l.campo || '—'}</small></td>
+            <td><small class="text-muted">${l.valorAnterior || '—'}</small></td>
+            <td><small>${l.valorNuevo || '—'}</small></td>
+            <td><small class="text-muted">${l.contexto || '—'}</small></td>
+          </tr>`).join('');
+
+    renderPaginacion('bit-paginacion', r.pagina, r.total, r.pageSize, buscarBitacora);
+  } catch (e) { showAlert('danger', 'Error: ' + e.message); }
+  finally { hideSpinner(); }
+}
+
+// ============================================================
+// IMPORTAR CSV
+// ============================================================
+async function cargarEstadisticasImport() {
+  try {
+    const r = await call('getEstadisticasContribuyentes', { token: TOKEN });
+    if (r.ok) {
+      document.getElementById('import-stats').innerHTML =
+        `<div class="alert alert-secondary py-2">
+          <i class="fas fa-database me-2"></i>
+          Base actual: <strong>${r.stats.total.toLocaleString()}</strong> contribuyentes
+          ${r.stats.ultimaCarga ? '— Última carga: ' + fmtDate(r.stats.ultimaCarga) : ''}
+        </div>`;
+    }
+  } catch (e) {}
+}
+
+function leerCSV() {
+  const file = document.getElementById('import-file').files[0];
+  if (!file) { showAlert('warning', 'Seleccione un archivo CSV.'); return; }
+
+  showSpinner('Leyendo archivo...');
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const text  = e.target.result;
+      const lineas = text.split(/\r?\n/).filter(l => l.trim());
+      const sep   = lineas[0].includes(';') ? ';' : ',';
+      const parse = l => l.split(sep).map(v => v.trim().replace(/^"|"$/g,''));
+
+      _csvData = lineas.map(parse);
+
+      // Preview
+      const preview = _csvData.slice(0, 6);
+      let tabla = '<thead><tr>' + preview[0].map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
+      tabla += preview.slice(1).map(f => '<tr>' + f.map(c => `<td><small>${c||'—'}</small></td>`).join('') + '</tr>').join('');
+      tabla += '</tbody>';
+      document.getElementById('tabla-preview').innerHTML = tabla;
+      document.getElementById('import-preview').style.display = '';
+      document.getElementById('import-resultado').innerHTML = '';
+
+      showAlert('info', 'Archivo leído: ' + (_csvData.length - 1) + ' filas de datos.');
+    } catch (err) {
+      showAlert('danger', 'Error leyendo archivo: ' + err.message);
+    } finally { hideSpinner(); }
+  };
+  reader.onerror = () => { hideSpinner(); showAlert('danger', 'Error leyendo el archivo.'); };
+  reader.readAsText(file, 'UTF-8');
+}
+
+async function confirmarImportacion() {
+  if (!_csvData) return;
+  const reemplazar = document.getElementById('import-reemplazar').checked;
+  showSpinner('Importando datos (' + (_csvData.length - 1) + ' filas)...');
+  try {
+    const r = await call('processContribuyentesData', { token: TOKEN, filas: _csvData, reemplazar });
+    if (r.ok) {
+      document.getElementById('import-resultado').innerHTML =
+        `<div class="alert alert-success">
+          <i class="fas fa-check-circle me-2"></i>
+          <strong>Importación exitosa.</strong> ${r.cargados} filas cargadas.
+          ${r.errores && r.errores.length > 0 ? '<br><small>Advertencias: ' + r.errores.join(' | ') + '</small>' : ''}
+        </div>`;
+      document.getElementById('import-preview').style.display = 'none';
+      _csvData = null;
+      cargarEstadisticasImport();
+    } else {
+      document.getElementById('import-resultado').innerHTML =
+        `<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>${r.error}</div>`;
+    }
+  } catch (e) { showAlert('danger', 'Error: ' + e.message); }
+  finally { hideSpinner(); }
+}
+
+function cancelarImportacion() {
+  _csvData = null;
+  document.getElementById('import-preview').style.display = 'none';
+  document.getElementById('import-file').value = '';
+}
+
+async function ejecutarAsignacionAuto() {
+  if (!confirm('¿Desea asignar automáticamente los contribuyentes pendientes entre los gestores activos?')) return;
+  
+  showSpinner('Ejecutando asignación masiva...');
+  try {
+    const r = await call('autoAssignExpedientes', { token: TOKEN });
+    if (r.ok) {
+      showAlert('success', 'Asignación completada: ' + r.asignados + ' expedientes creados.');
+      if (typeof cargarEstadisticasImport === 'function') cargarEstadisticasImport();
+    } else {
+      showAlert('danger', 'Error en asignación: ' + r.error);
+    }
+  } catch (e) { showAlert('danger', 'Error de conexión: ' + e.message); }
+  finally { hideSpinner(); }
+}
+
+async function cargarDatosTesting() {
+  if (!confirm('Esto insertará registros de prueba (prefijo TEST-). ¿Continuar?')) return;
+  showSpinner('Cargando datos...');
+  try {
+    const r = await call('insertTestData', { token: TOKEN });
+    if (r.ok) {
+      showAlert('success', r.mensaje);
+      if (typeof buscarExpedientes === 'function') buscarExpedientes();
+    } else { showAlert('danger', 'Error: ' + r.error); }
+  } catch (e) { showAlert('danger', 'Error: ' + e.message); }
+  finally { hideSpinner(); }
+}
+
+async function limpiarDatosTesting() {
+  if (!confirm('Esto eliminará TODOS los registros con prefijo TEST-. ¿Continuar?')) return;
+  showSpinner('Limpiando datos...');
+  try {
+    const r = await call('clearTestData', { token: TOKEN });
+    if (r.ok) {
+      showAlert('success', r.mensaje);
+      if (typeof buscarExpedientes === 'function') buscarExpedientes();
+    } else { showAlert('danger', 'Error: ' + r.error); }
+  } catch (e) { showAlert('danger', 'Error: ' + e.message); }
+  finally { hideSpinner(); }
+}
+
+// ============================================================
+// USUARIOS
+// ============================================================
+async function cargarUsuarios() {
+  showSpinner('Cargando usuarios...');
+  try {
+    const r = await call('getUsuarios', { token: TOKEN });
+    if (!r.ok) { showAlert('danger', r.error); return; }
+
+    document.getElementById('tabla-usuarios').innerHTML = r.usuarios.length === 0
+      ? '<tr><td colspan="8" class="text-center text-muted">Sin usuarios</td></tr>'
+      : r.usuarios.map(u => `
+          <tr>
+            <td><small>${u.id}</small></td>
+            <td>${u.nombre}</td>
+            <td>${u.correo}</td>
+            <td><span class="badge bg-primary">${u.rol}</span></td>
+            <td>${u.area || '—'}</td>
+            <td>${u.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>'}</td>
+            <td><small>${fmtDate(u.ultimoAcceso)}</small></td>
+            <td>
+              <button class="btn btn-xs btn-outline-${u.activo ? 'danger' : 'success'} btn-sm"
+                onclick="toggleUsuario('${u.id}',${!u.activo})">
+                ${u.activo ? 'Desactivar' : 'Activar'}
+              </button>
+            </td>
+          </tr>`).join('');
+  } catch (e) { showAlert('danger', 'Error: ' + e.message); }
+  finally { hideSpinner(); }
+}
+
+function abrirModalNuevoUsuario() {
+  document.getElementById('usr-error').classList.add('d-none');
+  ['usr-nombre','usr-correo','usr-area','usr-pass'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  new bootstrap.Modal(document.getElementById('modal-usuario')).show();
+}
+
+async function guardarUsuario() {
+  const errDiv = document.getElementById('usr-error');
+  errDiv.classList.add('d-none');
+
+  const datos = {
+    nombre:   document.getElementById('usr-nombre').value.trim(),
+    correo:   document.getElementById('usr-correo').value.trim(),
+    rol:      document.getElementById('usr-rol').value,
+    area:     document.getElementById('usr-area').value.trim(),
+    password: document.getElementById('usr-pass').value
+  };
+
+  showSpinner('Creando usuario...');
+  try {
+    const r = await call('crearUsuario', { token: TOKEN, datos });
+    if (!r.ok) {
+      errDiv.textContent = r.error;
+      errDiv.classList.remove('d-none');
+    } else {
+      bootstrap.Modal.getInstance(document.getElementById('modal-usuario')).hide();
+      showAlert('success', 'Usuario creado: ' + r.id);
+      cargarUsuarios();
+    }
+  } catch (e) {
+    errDiv.textContent = 'Error: ' + e.message;
+    errDiv.classList.remove('d-none');
+  } finally { hideSpinner(); }
+}
+
+async function toggleUsuario(id, nuevoEstado) {
+  showSpinner('Actualizando usuario...');
+  try {
+    const r = await call('toggleUsuarioActivo', { token: TOKEN, usuarioId: id });
+    if (r.ok) {
+      showAlert('success', 'Estado actualizado.');
+      cargarUsuarios();
+    } else {
+      showAlert('danger', r.error);
+    }
+  } catch (e) { showAlert('danger', 'Error: ' + e.message); }
+  finally { hideSpinner(); }
+}
+
+// ============================================================
+// PAGINACIÓN
+// ============================================================
+function renderPaginacion(containerId, paginaActual, total, pageSize, fnCargar) {
+  const totalPaginas = Math.ceil(total / pageSize);
+  if (totalPaginas <= 1) { document.getElementById(containerId).innerHTML = ''; return; }
+
+  const prev = paginaActual > 1;
+  const next = paginaActual < totalPaginas;
+
+  document.getElementById(containerId).innerHTML = `
+    <nav><ul class="pagination pagination-sm mb-0">
+      <li class="page-item ${!prev ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="${fnCargar.name}(${paginaActual-1});return false">«</a>
+      </li>
+      <li class="page-item disabled">
+        <span class="page-link">${paginaActual} / ${totalPaginas} (${total} reg.)</span>
+      </li>
+      <li class="page-item ${!next ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="${fnCargar.name}(${paginaActual+1});return false">»</a>
+      </li>
+    </ul></nav>`;
+}
+</script>
+</body>
+</html>

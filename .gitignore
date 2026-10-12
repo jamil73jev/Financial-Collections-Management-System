@@ -1,0 +1,31 @@
+# Datos y respaldos (nunca al repositorio)
+*.csv
+*.xlsx
+*.xls
+*.bson
+*.bson.gz
+dump/
+backups/
+*.pbix
+
+# Claves y configuración local
+.env
+.env.*
+!.env.example
+!.env.production.example
+.claude/settings.local.json
+*.pem
+*.key
+
+# Dependencias y compilados
+node_modules/
+__pycache__/
+dist/
+build/
+.venv/
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

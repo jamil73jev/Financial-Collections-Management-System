@@ -1,0 +1,46 @@
+# Secretos — NUNCA subir a Git
+.env
+nginx/ssl/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Logs
+backend/logs/
+*.log
+
+# Backups
+backup/
+
+# Frontend build (se regenera en cada deploy en Render)
+backend/frontend/
+frontend-v2/node_modules/
+frontend-v2/dist/
+
+# Variables de entorno del frontend (contienen URL de producción)
+frontend-v2/.env.production
+
+# Docker volumes (si se usan bind mounts locales)
+mongo_data/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/settings.json
+.idea/
+*.suo
+*.user
+google-sheets-app/*.csv

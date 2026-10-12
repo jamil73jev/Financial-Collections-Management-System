@@ -1,0 +1,82 @@
+version: "3.9"
+
+# ============================================================
+# SIGECO — Docker Compose
+# ============================================================
+# Desarrollo local:
+#   docker compose up
+#
+# Producción (con Nginx + SSL):
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# ============================================================
+
+services:
+
+  # ── Backend FastAPI ────────────────────────────────────────
+  backend:
+    build: ./backend
+    container_name: sigeco_backend
+    env_file: .env
+    environment:
+      - MONGO_URI=mongodb://sigeco_app:${MONGO_APP_PASS:-sigeco123}@mongodb:27017/Base1%2C5?authSource=Base1%2C5
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./backend/logs:/app/logs
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - sigeco_net
+
+  # ── MongoDB ───────────────────────────────────────────────
+  mongodb:
+    image: mongo:7.0
+    container_name: sigeco_mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS:-adminpass}
+    volumes:
+      - mongo_data:/data/db
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/init.js:ro
+      - ./backup:/backup
+    ports:
+      - "127.0.0.1:27017:27017"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - sigeco_net
+
+  # ── Nginx (frontend estático + proxy API) ─────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: sigeco_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./frontend:/var/www/sigeco:ro
+      # Desarrollo local: usar nginx.local.conf (sin SSL)
+      # Producción:       cambiar a nginx.conf (con SSL)
+      - ./nginx/nginx.local.conf:/etc/nginx/conf.d/default.conf:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - sigeco_net
+
+volumes:
+  mongo_data:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  sigeco_net:
+    driver: bridge
