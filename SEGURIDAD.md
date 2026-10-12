@@ -1,6 +1,6 @@
 # Seguridad: qué nunca se sube a este repositorio
 
-1. **Datos de contribuyentes:** RUC, nombres, direcciones, correos, teléfonos, deudas o pagos reales. Aplica a CSV, Excel, JSON y respaldos de MongoDB (`dump/`, `*.bson`).
+1. **Datos de contribuyentes:** RUC, nombres, direcciones, correos, teléfonos, deudas o pagos reales. Aplica a CSV, Excel, JSON y respaldos de bases de datos (`dump/`, `*.bson`).
 2. **Claves y credenciales:** contraseñas, cadenas de conexión con usuario y clave, tokens, llaves privadas. Se leen de variables de entorno o de las propiedades del script de Apps Script.
 3. **Configuración local:** `.claude/settings.local.json`, `.env` (solo se versiona `.env.example` con valores de ejemplo).
 4. **Archivos de más de 100 MB:** GitHub los rechaza. Los archivos de Power BI (`.pbix`) no se suben.
