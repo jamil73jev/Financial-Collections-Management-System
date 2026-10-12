@@ -42,5 +42,5 @@ Los estados de expediente, prioridades y alertas están en `Constants.gs`. Los d
 
 ## Seguridad
 
-- Las contraseñas se guardan como hash con sal; la clave inicial del administrador se define en la propiedad `ADMIN_INITIAL_PASSWORD` antes de ejecutar `setupSystem`.
+- Las contraseñas se guardan como hash con sal; la clave inicial del administrador se define en las propiedades del script antes de ejecutar `setupSystem` (ver `despliegue.md`).
 - Ninguna clave va en el código. Ver `SEGURIDAD.md`.
