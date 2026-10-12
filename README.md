@@ -2,7 +2,7 @@
 
 Sistema para el seguimiento operativo de la cobranza municipal: expedientes, asignación a funcionarios, gestiones, pagos, alertas y bitácora de auditoría.
 
-**Responsable:** [completar nombre y cargo]
+**Responsable:** Jorge Jamil Espinoza Villa, Analista Financiero
 **Área:** Dirección General Financiera, M.I. Municipalidad de Guayaquil
 **Estado:** en operación (tres instancias)
 
