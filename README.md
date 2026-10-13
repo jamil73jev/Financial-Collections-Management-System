@@ -12,7 +12,7 @@ ETL y aplicación web para la cobranza municipal. Toma la deuda desde Power BI, 
 
 ## Contenido
 
-[Qué hace](#qué-hace) · [Flujo de datos (ETL)](#flujo-de-datos-etl) · [Arquitectura](#arquitectura) · [Flujo de trabajo](#flujo-de-trabajo) · [Ciclo de vida del expediente](#ciclo-de-vida-del-expediente) · [Alertas](#alertas) · [Roles y permisos](#roles-y-permisos) · [Instancias](#instancias) · [Estructura](#estructura-del-repositorio) · [Ejemplo](#ejemplo-con-datos-ficticios) · [Consultas SQL](#consultas-sql) · [Documentación](#documentación) · [Seguridad](#datos-y-seguridad)
+[Qué hace](#qué-hace) · [Flujo de datos (ETL)](#flujo-de-datos-etl) · [Arquitectura](#arquitectura) · [Flujo de trabajo](#flujo-de-trabajo) · [Ciclo de vida del expediente](#ciclo-de-vida-del-expediente) · [Alertas](#alertas) · [Roles y permisos](#roles-y-permisos) · [Instancias](#instancias) · [Estructura](#estructura-del-repositorio) · [Ejemplo](#ejemplo-con-datos-ficticios) · [Consultas SQL](#consultas-sql) · [Documentación](#documentación) · [Relacionados](#repositorios-relacionados) · [Seguridad](#datos-y-seguridad)
 
 ## Qué hace
 
@@ -209,7 +209,11 @@ Un mismo sistema desplegado para dos líneas de cobro. Cada instancia tiene su p
 ├── docs/
 │   ├── modelo-de-datos.md          hojas, columnas y relaciones
 │   ├── arquitectura-y-modulos.md   módulos y automatizaciones
-│   └── despliegue.md               instalación paso a paso
+│   ├── guia-etl.md                 guía rápida del ETL
+│   ├── despliegue.md               instalación paso a paso
+│   └── pendientes-tecnicos.md      hallazgos y recomendaciones
+├── .github/                        verificación automática y plantilla de cambios
+├── CHANGELOG.md                    historial de cambios
 └── SEGURIDAD.md                    qué nunca se sube
 ```
 
@@ -250,8 +254,19 @@ La instancia Patente Municipal se alimenta con 2 consultas al data warehouse mun
 |---|---|
 | [Modelo de datos](docs/modelo-de-datos.md) | Hojas, columnas y relaciones de cada instancia |
 | [Arquitectura y módulos](docs/arquitectura-y-modulos.md) | Roles, módulos y automatizaciones |
+| [Guía rápida del ETL](docs/guia-etl.md) | Cómo cargar la deuda desde Power BI, paso a paso |
 | [Despliegue](docs/despliegue.md) | Instalación paso a paso de una instancia |
+| [Pendientes técnicos](docs/pendientes-tecnicos.md) | Hallazgos de la revisión del código y recomendaciones |
 | [Seguridad](SEGURIDAD.md) | Qué nunca se sube y qué hacer si ocurre |
+
+## Repositorios relacionados
+
+- [SICOGE](https://github.com/jamil73jev/SICOGE): vista de georreferenciación de la cartera.
+- [Dashboards-de-Power-BI](https://github.com/jamil73jev/Dashboards-de-Power-BI): dashboards y consultas del modelo del que se alimenta el ETL de SIGECO.
+
+## Historial de cambios
+
+Ver [`CHANGELOG.md`](CHANGELOG.md). Los cambios se revisan con la lista de la plantilla de pull request y con la verificación automática de `.github/`.
 
 ## Datos y seguridad
 

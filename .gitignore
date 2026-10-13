@@ -9,6 +9,9 @@ backups/
 *.pbix
 
 # Claves y configuración local
+.clasp.json
+.clasprc.json
+*.bak
 .env
 .env.*
 !.env.example
