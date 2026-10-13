@@ -1,6 +1,6 @@
-# Consultas SQL de SIGECO
+# Consultas SQL de SIGCC
 
-Consultas del data warehouse municipal que arman el modelo de Power BI del que se alimenta la instancia **Patente Municipal** de SIGECO. El analista exporta la tabla con DAX Studio a CSV y el ETL de SIGECO la carga en las hojas de preparación (ver el [flujo de datos](../README.md#flujo-de-datos-etl)).
+Consultas del data warehouse municipal que arman el modelo de Power BI del que se alimenta la instancia **Patente Municipal** de SIGCC. El analista exporta la tabla con DAX Studio a CSV y el ETL de SIGCC la carga en las hojas de preparación (ver el [flujo de datos](../README.md#flujo-de-datos-etl)).
 
 | Consulta | Qué responde | Página | Granularidad |
 |---|---|---|---|
@@ -12,7 +12,7 @@ flowchart LR
     DW[("Data warehouse municipal")]
     DW -->|"consultas SQL"| PBI["Modelo de Power BI"]
     PBI -->|"DAX Studio: exporta a CSV"| CSV["CSV"]
-    CSV --> ETL["ETL de SIGECO<br/>Apps Script"]
+    CSV --> ETL["ETL de SIGCC<br/>Apps Script"]
     ETL --> SH[("Google Sheets")]
     SH --> APP["Aplicación web"]
 ```

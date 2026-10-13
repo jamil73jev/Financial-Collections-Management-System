@@ -1,4 +1,4 @@
-# Modelo de datos de SIGECO
+# Modelo de datos de SIGCC
 
 Describe **solo la estructura** (hojas y columnas) de la base de cada instancia, que vive en una hoja de cálculo de Google Sheets. No incluye datos. Las columnas marcadas con 🔒 contienen datos personales o de seguridad en la base real.
 

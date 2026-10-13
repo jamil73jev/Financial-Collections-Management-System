@@ -1,4 +1,4 @@
-# Sistema Integral de Gestión y Control de Cobranzas 
+# SIGCC: Sistema Integral de Gestión y Control de Cobranzas
 
 ETL y aplicación web para la cobranza municipal. Toma la deuda desde Power BI, la procesa en Google Apps Script, la guarda en Google Sheets y la entrega en una aplicación web (HTML) para gestionar expedientes, gestiones, pagos, alertas y bitácora de auditoría.
 
@@ -8,7 +8,7 @@ ETL y aplicación web para la cobranza municipal. Toma la deuda desde Power BI, 
 | **Área** | Dirección General Financiera, M.I. Municipalidad de Guayaquil |
 | **Estado** | En operación, dos instancias |
 | **Plataforma** | Google Apps Script (V8) y Google Sheets |
-| **Uso** | Interno. Repositorio privado |
+| **Uso** | Repositorio público de documentación, con datos ficticios. Restricciones en [`AVISO.md`](AVISO.md) |
 
 ## Contenido
 
@@ -27,7 +27,7 @@ ETL y aplicación web para la cobranza municipal. Toma la deuda desde Power BI, 
 
 ## Flujo de datos (ETL)
 
-SIGECO es un ETL completo: **extrae** la deuda del modelo de Power BI, la **transforma** y valida con Apps Script, la **carga** en Google Sheets y la **presenta** en una aplicación web.
+SIGCC es un ETL completo: **extrae** la deuda del modelo de Power BI, la **transforma** y valida con Apps Script, la **carga** en Google Sheets y la **presenta** en una aplicación web.
 
 ```mermaid
 flowchart LR
@@ -226,9 +226,9 @@ Capturas de la instancia Bahías con datos ficticios (cada una lleva la marca «
 
 | Inicio de sesión | Tablero |
 |---|---|
-| ![Inicio de sesión de SIGECO](docs/img/bahias-inicio-de-sesion.png) | ![Tablero de indicadores de SIGECO](docs/img/bahias-tablero.png) |
+| ![Inicio de sesión de SIGCC](docs/img/bahias-inicio-de-sesion.png) | ![Tablero de indicadores de SIGCC](docs/img/bahias-tablero.png) |
 
-![Listado de expedientes y carga ETL de SIGECO](docs/img/bahias-expedientes.png)
+![Listado de expedientes y carga ETL de SIGCC](docs/img/bahias-expedientes.png)
 
 ## Ejemplo con datos ficticios
 
@@ -274,8 +274,8 @@ La instancia Patente Municipal se alimenta con 2 consultas al data warehouse mun
 
 ## Repositorios relacionados
 
-- [SICOGE](https://github.com/jamil73jev/SICOGE): vista de georreferenciación de la cartera.
-- [Dashboards-de-Power-BI](https://github.com/jamil73jev/Dashboards-de-Power-BI): dashboards y consultas del modelo del que se alimenta el ETL de SIGECO.
+- [PIGGC](https://github.com/jamil73jev/Geospatial-Debt-Analytics-Platform): vista de georreferenciación de la cartera.
+- [Dashboards-de-Power-BI](https://github.com/jamil73jev/Dashboards-de-Power-BI): dashboards y consultas del modelo del que se alimenta el ETL de SIGCC.
 
 ## Historial de cambios
 

@@ -1,4 +1,4 @@
-# Guía rápida del ETL de SIGECO
+# Guía rápida del ETL de SIGCC
 
 Cómo llevar la deuda desde Power BI hasta la aplicación web. Sirve para las dos instancias; donde difieren, se indica.
 

@@ -1,6 +1,6 @@
-# Aviso de uso y propiedad intelectual: SIGECO
+# Aviso de uso y propiedad intelectual: SIGCC
 
-SIGECO (Sistema Integral de Gestión de Cobranza) es un sistema de uso interno de la Dirección General Financiera de la M.I. Municipalidad de Guayaquil. Este repositorio es privado y reúne su código, su documentación y sus pruebas.
+SIGCC (Sistema Integral de Gestión y Control de Cobranzas) es un sistema de uso interno de la Dirección General Financiera de la M.I. Municipalidad de Guayaquil. Este repositorio es privado y reúne su código, su documentación y sus pruebas.
 
 ## Autoría y titularidad
 
@@ -25,7 +25,7 @@ Este aviso cubre todo el contenido del repositorio:
 ## Uso permitido
 
 - Lectura, revisión y mantenimiento por parte del personal autorizado de la Dirección General Financiera.
-- Instalación y operación de SIGECO en las cuentas institucionales de Google Workspace que la Municipalidad designe.
+- Instalación y operación de SIGCC en las cuentas institucionales de Google Workspace que la Municipalidad designe.
 - Auditorías internas y de control sobre el funcionamiento del sistema.
 - Uso de las capturas y ejemplos con datos ficticios para capacitar o explicar el sistema dentro de la institución.
 
@@ -45,7 +45,7 @@ Si alguien encuentra en este repositorio un dato personal, una credencial o un a
 
 ## Componentes de terceros
 
-SIGECO usa servicios y bibliotecas que no son de la persona autora y que conservan sus propias licencias y términos: Google Apps Script y Google Sheets, y, en las páginas web, Bootstrap, Chart.js y Font Awesome, cargados desde redes de distribución de contenido. Este aviso no modifica esas licencias.
+SIGCC usa servicios y bibliotecas que no son de la persona autora y que conservan sus propias licencias y términos: Google Apps Script y Google Sheets, y, en las páginas web, Bootstrap, Chart.js y Font Awesome, cargados desde redes de distribución de contenido. Este aviso no modifica esas licencias.
 
 ## Sin garantía
 

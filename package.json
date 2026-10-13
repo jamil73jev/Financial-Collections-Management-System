@@ -1,7 +1,7 @@
 {
   "name": "sigeco",
   "private": true,
-  "description": "Pruebas automáticas de la lógica de SIGECO (ETL de importación). No tiene dependencias.",
+  "description": "Pruebas automáticas de la lógica de SIGCC (ETL de importación). No tiene dependencias.",
   "scripts": {
     "test": "node --test \"pruebas/*.test.js\""
   }

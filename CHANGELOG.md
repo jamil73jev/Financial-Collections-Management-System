@@ -2,6 +2,14 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Las versiones siguen `MAYOR.MENOR.PARCHE`.
 
+## [1.3.0] - 2026-10-13
+
+### Cambiado
+- Cambio de nombre: SIGECO pasa a llamarse SIGCC (Sistema Integral de Gestión y Control de Cobranzas). El repositorio ahora es `Financial-Collections-Management-System`.
+- Los nombres internos del código (`SIGECO_ETL`, `SIGECO_BACKUPS`, `"name": "sigeco"`) se conservan para no afectar instalaciones en operación.
+- Referencia al sistema de georreferenciación: SICOGE pasa a llamarse PIGGC (`Geospatial-Debt-Analytics-Platform`).
+- `README.md`: el uso se describe como repositorio público de documentación con datos ficticios.
+
 ## [1.2.0] - 2026-10-13
 
 ### Agregado

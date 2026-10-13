@@ -1,6 +1,6 @@
-# Arquitectura y módulos de SIGECO
+# Arquitectura y módulos de SIGCC
 
-SIGECO es un ETL con aplicación web. Los datos salen del modelo de Power BI (exportados a CSV con DAX Studio), Google Apps Script los procesa, Google Sheets los guarda y una aplicación web en HTML los presenta (`doGet` en `Code.gs` sirve `Index.html`). Cada instancia (Bahías, Patente Municipal) es un proyecto independiente con su propia hoja.
+SIGCC es un ETL con aplicación web. Los datos salen del modelo de Power BI (exportados a CSV con DAX Studio), Google Apps Script los procesa, Google Sheets los guarda y una aplicación web en HTML los presenta (`doGet` en `Code.gs` sirve `Index.html`). Cada instancia (Bahías, Patente Municipal) es un proyecto independiente con su propia hoja.
 
 ## Roles
 
