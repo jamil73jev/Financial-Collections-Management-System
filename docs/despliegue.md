@@ -7,9 +7,11 @@
    - Patente Municipal: `ADMIN_INITIAL_PASSWORD`.
    En ambos casos el administrador debe cambiar la clave en su primer ingreso.
 4. Ejecutar la función `setupSystem` (`Setup.gs`) una sola vez: crea las hojas, los encabezados, la configuración por defecto y el usuario administrador. No ejecutar `limpiarSistemaCompleto`: borra la base.
-5. Instalar los triggers (alertas, respaldo, limpieza de sesiones).
+5. Instalar los triggers con `installAllTriggers` (alertas, respaldo, limpieza de sesiones; en Patente Municipal también la carga diaria desde Drive).
 6. **Implementar > Nueva implementación > Aplicación web.** El `appsscript.json` del repositorio la configura para ejecutarse como el usuario que implementa (`USER_DEPLOYING`) con acceso `ANYONE` (cualquier cuenta de Google); el control real de acceso es el inicio de sesión propio de SIGECO. Evaluar restringirlo más (ver `SEGURIDAD.md`).
-7. Cargar el padrón con el módulo de importación. Los datos reales nunca se suben a este repositorio.
+7. Preparar el ETL y cargar el padrón. Los datos reales nunca se suben a este repositorio.
+   - Bahías: crear la hoja de preparación desde la aplicación (botón de ETL de contribuyentes), pegar la tabla exportada, revisar la vista previa y confirmar.
+   - Patente Municipal: ejecutar `setupDriveFolders` (crea `SIGECO_ETL/IMPORTS` y `PROCESSED`), subir el CSV a `IMPORTS` y esperar el disparador de las 6:00 o ejecutar `importCSVFromDrive`. Para pagos, crear la hoja con `setupPagosETLSheet` y usar el botón de ETL de pagos.
 8. Verificar con `?health=1` en la URL de la aplicación.
 
-Solo Patente Municipal: ejecutar `installSecrets` (`SecretsService.gs`) para generar la clave de sincronización con Power BI y guardarla únicamente en las propiedades del script.
+Solo Patente Municipal: `installSecrets` (`SecretsService.gs`) guarda una clave en las propiedades del script. La usaba el módulo heredado `PowerBIService.gs`; la conexión directa con Power BI se eliminó (`doPost` ya no existe), así que el flujo actual no la necesita.

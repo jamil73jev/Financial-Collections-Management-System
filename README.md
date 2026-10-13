@@ -1,6 +1,6 @@
 # SIGECO: Sistema Integral de Gestión de Cobranza
 
-Aplicación web para el seguimiento operativo de la cobranza municipal: expedientes, asignación a funcionarios, gestiones, pagos, alertas y bitácora de auditoría.
+ETL y aplicación web para la cobranza municipal. Toma la deuda desde Power BI, la procesa en Google Apps Script, la guarda en Google Sheets y la entrega en una aplicación web (HTML) para gestionar expedientes, gestiones, pagos, alertas y bitácora de auditoría.
 
 | | |
 |---|---|
@@ -12,11 +12,11 @@ Aplicación web para el seguimiento operativo de la cobranza municipal: expedien
 
 ## Contenido
 
-[Qué hace](#qué-hace) · [Arquitectura](#arquitectura) · [Flujo de trabajo](#flujo-de-trabajo) · [Ciclo de vida del expediente](#ciclo-de-vida-del-expediente) · [Alertas](#alertas) · [Roles y permisos](#roles-y-permisos) · [Instancias](#instancias) · [Estructura](#estructura-del-repositorio) · [Ejemplo](#ejemplo-con-datos-ficticios) · [Consultas SQL](#consultas-sql) · [Documentación](#documentación) · [Seguridad](#datos-y-seguridad)
+[Qué hace](#qué-hace) · [Flujo de datos (ETL)](#flujo-de-datos-etl) · [Arquitectura](#arquitectura) · [Flujo de trabajo](#flujo-de-trabajo) · [Ciclo de vida del expediente](#ciclo-de-vida-del-expediente) · [Alertas](#alertas) · [Roles y permisos](#roles-y-permisos) · [Instancias](#instancias) · [Estructura](#estructura-del-repositorio) · [Ejemplo](#ejemplo-con-datos-ficticios) · [Consultas SQL](#consultas-sql) · [Documentación](#documentación) · [Seguridad](#datos-y-seguridad)
 
 ## Qué hace
 
-- Carga el padrón de contribuyentes con deuda desde el reporte de origen.
+- **ETL:** recibe el CSV exportado de Power BI, normaliza y valida las columnas, y carga los contribuyentes con deuda en Google Sheets.
 - Crea un expediente por contribuyente y lo asigna a un gestor.
 - Registra cada gestión de cobro (llamada telefónica, correo electrónico y otros) con su resultado y próxima fecha.
 - Registra pagos y calcula saldo pendiente y porcentaje recuperado.
@@ -24,6 +24,39 @@ Aplicación web para el seguimiento operativo de la cobranza municipal: expedien
 - Cierra expedientes y los archiva con motivo y responsable.
 - Deja una bitácora de auditoría de cada cambio.
 - Entrega un tablero de indicadores y respaldos diarios.
+
+## Flujo de datos (ETL)
+
+SIGECO es un ETL completo: **extrae** la deuda del modelo de Power BI, la **transforma** y valida con Apps Script, la **carga** en Google Sheets y la **presenta** en una aplicación web.
+
+```mermaid
+flowchart LR
+    DW[("Data warehouse<br/>municipal")] -->|"consultas SQL"| PBI["Modelo de<br/>Power BI"]
+    PBI -->|"DAX Studio:<br/>exporta la tabla a CSV"| CSV["Archivo CSV"]
+    CSV --> ST["Hoja de preparación<br/>o carpeta de Drive"]
+    ST -->|"Apps Script:<br/>normaliza, valida, deduplica"| SH[("Google Sheets<br/>CONTRIBUYENTES · EXPEDIENTES<br/>GESTIONES · PAGOS")]
+    SH --> APP["Aplicación web HTML<br/>tablero, expedientes, alertas"]
+```
+
+| Etapa | Qué ocurre | Dónde |
+|---|---|---|
+| Extracción | Las consultas SQL arman el modelo de Power BI. El analista exporta la tabla con **DAX Studio** a un archivo CSV | [`consultas/`](consultas/README.md) |
+| Carga a preparación | El CSV entra a una hoja de preparación (*staging*) de la misma hoja de cálculo | Hojas `DATA_*` |
+| Transformación | Apps Script normaliza los encabezados, valida cada fila, descarta duplicados y crea un expediente por contribuyente nuevo | `ImportService.gs`, `DataManagementService.gs` |
+| Carga final | Los datos quedan en `CONTRIBUYENTES` y `EXPEDIENTES`. Los pagos se registran en `PAGOS` | Google Sheets |
+| Presentación | La aplicación web lee las hojas y muestra tablero, expedientes y alertas | `Code.gs`, `Index.html` |
+
+**Pagos (ambas instancias):** se pega la tabla de pagos en la hoja `DATA_POWERBI_IMPORT_PAGOS` y un botón de ETL registra cada pago en el expediente activo del RUC. También hay conciliación desde otra hoja con vista previa y confirmación.
+
+Cada instancia carga los contribuyentes de forma distinta:
+
+| | Bahías | Patente Municipal |
+|---|---|---|
+| Entrada | Se pega la tabla en la hoja de preparación `DATA_IMPORT_CONTRIBUYENTES` | Se sube el CSV a la carpeta `SIGECO_ETL/IMPORTS` de Drive, o se pega en `DATA_POWERBI_IMPORT_CONTRIBUYENTES` |
+| Proceso | **Vista previa** con filas aceptadas, duplicadas y rechazadas; el administrador confirma | Un disparador diario (6:00) procesa los CSV nuevos; también hay un botón «Procesar Contribuyentes ETL» |
+| Controles | Suma de verificación (*checksum*), bloqueo contra importaciones simultáneas, **respaldo previo** de la hoja, reporte en `IMPORT_REPORTE` | El CSV procesado se mueve a `SIGECO_ETL/PROCESSED` con fecha y hora; no duplica expedientes de RUC existentes |
+| Clave de la obligación | RUC + tipo de impuesto + puesto + periodo desde y hasta | Un expediente activo por RUC, con los impuestos y años de solicitud agrupados |
+| Después de cargar | Asigna los expedientes automáticamente | Crea el expediente y lo asigna por turnos entre los gestores activos |
 
 ## Arquitectura
 
@@ -39,24 +72,24 @@ flowchart LR
     subgraph GAS["Google Apps Script"]
         direction TB
         W["Aplicación web<br/>Code.gs + Index.html"]
-        SV["Servicios<br/>sesiones · expedientes · gestiones · pagos<br/>alertas · importación · tablero · bitácora"]
+        SV["Servicios<br/>sesiones · expedientes · gestiones · pagos<br/>alertas · ETL de importación · tablero · bitácora"]
         T["Triggers<br/>alertas diarias 07:00 · respaldo diario<br/>limpieza de sesiones cada 4 h · cola de tareas"]
     end
     DB[("Google Sheets<br/>una hoja de cálculo por instancia")]
     EXT["Gmail · Calendar · Drive"]
-    PBI["Power BI<br/>solo Patente Municipal"]
+    ETL["ETL<br/>CSV exportado de Power BI<br/>con DAX Studio"]
 
     U --> W --> SV --> DB
     T --> SV
     SV --> EXT
-    PBI <-.-> SV
+    ETL --> SV
 ```
 
 ## Flujo de trabajo
 
 ```mermaid
 flowchart TD
-    I["Administrador importa el padrón"] --> E["Se crea un expediente por contribuyente<br/>PENDIENTE_ASIGNACION"]
+    I["ETL: el administrador carga<br/>el CSV de Power BI"] --> E["Se crea un expediente por contribuyente<br/>PENDIENTE_ASIGNACION"]
     E --> AS["Supervisor asigna a un gestor"]
     AS --> GE["Gestor registra una gestión<br/>llamada · correo · otro"]
     GE --> R{"Resultado"}
@@ -71,6 +104,8 @@ flowchart TD
     GE -.-> B[("BITACORA<br/>cada cambio queda registrado")]
     P -.-> B
 ```
+
+En Patente Municipal la asignación inicial es automática: el ETL reparte los expedientes nuevos por turnos entre los gestores activos.
 
 ## Ciclo de vida del expediente
 
@@ -145,8 +180,8 @@ Un mismo sistema desplegado para dos líneas de cobro. Cada instancia tiene su p
 
 | Instancia | Carpeta | Particularidades |
 |---|---|---|
-| Bahías | [`apps-script/bahias/`](apps-script/bahias/) | Datos del puesto comercial: mercado, asociación, giro del negocio, código CEP |
-| Patente Municipal | [`apps-script/patente-municipal/`](apps-script/patente-municipal/) | Deuda por año e impuesto; integración con Power BI; claves en propiedades del script; estados adicionales |
+| Bahías | [`apps-script/bahias/`](apps-script/bahias/) | Datos del puesto comercial: mercado, asociación, giro del negocio, código CEP; importación con vista previa, respaldo previo y reporte |
+| Patente Municipal | [`apps-script/patente-municipal/`](apps-script/patente-municipal/) | Deuda por año e impuesto; carga por CSV desde Drive con disparador diario; ETL de pagos; claves en propiedades del script; estados adicionales |
 
 ## Estructura del repositorio
 
@@ -165,8 +200,8 @@ Un mismo sistema desplegado para dos líneas de cobro. Cada instancia tiene su p
 │   │   ├── BitacoraService.gs      auditoría
 │   │   ├── BackupService.gs        respaldo diario
 │   │   └── Setup.gs                instalación inicial
-│   └── patente-municipal/          misma estructura, más PowerBIService.gs,
-│                                   SecretsService.gs y ExportService.gs
+│   └── patente-municipal/          misma estructura, más SecretsService.gs,
+│                                   ExportService.gs y PowerBIService.gs (heredado)
 ├── consultas/                      consultas SQL de la instancia Patente Municipal
 │   ├── README.md
 │   ├── detalle-de-contribuyentes-por-anio-de-solicitud_v202610.sql

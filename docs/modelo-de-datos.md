@@ -22,11 +22,13 @@ Describe **solo la estructura** (hojas y columnas) de la base de cada instancia,
 ### Bahías
 - `CONTRIBUYENTES` y `EXPEDIENTES` agregan datos del puesto comercial: `CATEGORIA_TIPO_MERCADO`, `MERCADO_SECTOR`, `ASOCIACION`, `NO_DE_PUESTO`, `GIRO_DEL_NEGOCIO`, `ESTADO_COMERCIANTE`, `PERIODO_DESDE`, `PERIODO_HASTA`, `ESTADO_DE_DEUDA`, `TOTAL_POR_COBRAR`, `CODIGO_CEP`.
 - `USUARIOS` agrega `REQUIERE_CAMBIO_PASSWORD`.
-- Hojas de carga: `DATA_IMPORT_CONTRIBUYENTES` (formato del reporte de origen) e `IMPORT_REPORTE` (control de cada importación: fecha, checksum, tipo, fila de origen).
+- Hojas de preparación (*staging*) del ETL: `DATA_IMPORT_CONTRIBUYENTES` (formato de BASE BAHIA, con sus encabezados originales) e `IMPORT_REPORTE` (control de cada importación: fecha, checksum, tipo, fila de origen).
+- `DATA_POWERBI_IMPORT_PAGOS` (`RUC`, `MONTO_PAGADO`, `TIPO_PAGO`, `REFERENCIA`, `FECHA_PAGO`) para el ETL de pagos.
 
 ### Patente Municipal
 - `CONTRIBUYENTES` se organiza por año de solicitud e impuesto: `AÑO_SOLICITUD`, `TIPO_IMPUESTO`, `TIPO_PERSONA`, `REPRESENTANTE_LEGAL`, valores de impuesto, interés, multa y recargo.
-- Hojas de intercambio con Power BI: `DATA_POWERBI_IMPORT`, `DATA_POWERBI_IMPORT_CONTRIBUYEN` y `DATA_POWERBI_IMPORT_PAGOS`. Esta última trae el detalle de recaudación (canal de pago, banco, estado de cobro y sumas de valores pagados, coactiva, convenio y reversos).
+- Hojas de preparación (*staging*) del ETL, donde llega el CSV exportado de Power BI: `DATA_POWERBI_IMPORT`, `DATA_POWERBI_IMPORT_CONTRIBUYENTES` (15 columnas: `ANIOSOLICITUD`, `IMPUESTO`, `RUC`, nombre, tipo de persona, correos, teléfonos, representante legal y sumas de impuesto, interés, multa, recargo y pendiente) y `DATA_POWERBI_IMPORT_PAGOS` (`RUC`, `MONTO_PAGADO`, `TIPO_PAGO`, `REFERENCIA`, `FECHA_PAGO`).
+- Carpetas de Drive del ETL: `SIGECO_ETL/IMPORTS` (CSV por procesar) y `SIGECO_ETL/PROCESSED` (CSV ya cargados, con fecha y hora en el nombre).
 
 ## Diagrama entidad-relación
 

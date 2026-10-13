@@ -1,6 +1,6 @@
 # Consultas SQL de SIGECO
 
-Consultas del data warehouse municipal que alimentan la instancia **Patente Municipal** de SIGECO. Sus resultados se importan a las hojas `DATA_POWERBI_IMPORT` y `DATA_POWERBI_IMPORT_PAGOS` del libro de la instancia.
+Consultas del data warehouse municipal que arman el modelo de Power BI del que se alimenta la instancia **Patente Municipal** de SIGECO. El analista exporta la tabla con DAX Studio a CSV y el ETL de SIGECO la carga en las hojas de preparación (ver el [flujo de datos](../README.md#flujo-de-datos-etl)).
 
 | Consulta | Qué responde | Página | Granularidad |
 |---|---|---|---|
@@ -10,10 +10,11 @@ Consultas del data warehouse municipal que alimentan la instancia **Patente Muni
 ```mermaid
 flowchart LR
     DW[("Data warehouse municipal")]
-    DW -->|"detalle de contribuyentes"| H1["Hoja DATA_POWERBI_IMPORT"]
-    DW -->|"pagos y reversos"| H2["Hoja DATA_POWERBI_IMPORT_PAGOS"]
-    H1 --> A["SIGECO<br/>Apps Script + Sheets"]
-    H2 --> A
+    DW -->|"consultas SQL"| PBI["Modelo de Power BI"]
+    PBI -->|"DAX Studio: exporta a CSV"| CSV["CSV"]
+    CSV --> ETL["ETL de SIGECO<br/>Apps Script"]
+    ETL --> SH[("Google Sheets")]
+    SH --> APP["Aplicación web"]
 ```
 
 ## Marcadores
@@ -23,6 +24,11 @@ Estas versiones están **sanitizadas**.
 | Marcador | Dónde | Qué poner |
 |---|---|---|
 | `<RUC_1>` a `<RUC_8>` | `detalle-de-contribuyentes-por-anio-de-solicitud` | RUC de las entidades que se excluyen. La lista real se guarda fuera del repositorio |
+
+## Cómo se relacionan con las hojas del ETL
+
+- **Detalle de contribuyentes:** la consulta devuelve `AnioSolicitud`, `Impuesto`, `Ruc`, `NombreContribuyente`, `TipoPersona`, correos, teléfonos, `RepresentanteLegal` y los valores de impuesto, interés, multa, recargo y pendiente. En Power BI se exportan como `ANIOSOLICITUD`, `IMPUESTO`, `RUC`… `SUMVALORPENDIENTE`, que son las 15 columnas que espera la hoja `DATA_POWERBI_IMPORT_CONTRIBUYENTES`.
+- **Pagos y reversos:** la consulta devuelve más columnas (canal de pago, banco, reversos, convenios) que las 5 que lee el ETL de pagos (`RUC`, `MONTO_PAGADO`, `TIPO_PAGO`, `REFERENCIA`, `FECHA_PAGO`). Antes de cargar hay que armar esa tabla en Power BI.
 
 ## Seguridad
 
