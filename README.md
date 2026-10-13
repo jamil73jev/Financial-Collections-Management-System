@@ -12,7 +12,7 @@ Aplicación web para el seguimiento operativo de la cobranza municipal: expedien
 
 ## Contenido
 
-[Qué hace](#qué-hace) · [Arquitectura](#arquitectura) · [Flujo de trabajo](#flujo-de-trabajo) · [Ciclo de vida del expediente](#ciclo-de-vida-del-expediente) · [Alertas](#alertas) · [Roles y permisos](#roles-y-permisos) · [Instancias](#instancias) · [Estructura](#estructura-del-repositorio) · [Ejemplo](#ejemplo-con-datos-ficticios) · [Documentación](#documentación) · [Seguridad](#datos-y-seguridad)
+[Qué hace](#qué-hace) · [Arquitectura](#arquitectura) · [Flujo de trabajo](#flujo-de-trabajo) · [Ciclo de vida del expediente](#ciclo-de-vida-del-expediente) · [Alertas](#alertas) · [Roles y permisos](#roles-y-permisos) · [Instancias](#instancias) · [Estructura](#estructura-del-repositorio) · [Ejemplo](#ejemplo-con-datos-ficticios) · [Consultas SQL](#consultas-sql) · [Documentación](#documentación) · [Seguridad](#datos-y-seguridad)
 
 ## Qué hace
 
@@ -167,6 +167,10 @@ Un mismo sistema desplegado para dos líneas de cobro. Cada instancia tiene su p
 │   │   └── Setup.gs                instalación inicial
 │   └── patente-municipal/          misma estructura, más PowerBIService.gs,
 │                                   SecretsService.gs y ExportService.gs
+├── consultas/                      consultas SQL de la instancia Patente Municipal
+│   ├── README.md
+│   ├── detalle-de-contribuyentes-por-anio-de-solicitud_v202610.sql
+│   └── pagos-y-reversos-patente-y-1-5-por-mil_v202610.sql
 ├── docs/
 │   ├── modelo-de-datos.md          hojas, columnas y relaciones
 │   ├── arquitectura-y-modulos.md   módulos y automatizaciones
@@ -200,6 +204,10 @@ Gestiones registradas sobre ese expediente:
 | 2026-01-12 | `LLAMADA_TELEFONICA` | `NO_CONTACTADO` | 2026-01-14 |
 | 2026-01-14 | `LLAMADA_TELEFONICA` | `CONTACTO_EFECTIVO` | 2026-01-21 |
 | 2026-01-21 | `CORREO_ELECTRONICO` | `PROMESA_PAGO` | 2026-02-04 |
+
+## Consultas SQL
+
+La instancia Patente Municipal se alimenta con 2 consultas al data warehouse municipal: el detalle de contribuyentes por año de solicitud y los pagos y reversos de patente y del 1,5 por mil. Están en [`consultas/`](consultas/README.md) como versiones sanitizadas, sin RUC ni servidor.
 
 ## Documentación
 
