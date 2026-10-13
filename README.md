@@ -180,7 +180,7 @@ Un mismo sistema desplegado para dos líneas de cobro. Cada instancia tiene su p
 
 | Instancia | Carpeta | Particularidades |
 |---|---|---|
-| Bahías | [`apps-script/bahias/`](apps-script/bahias/) | Datos del puesto comercial: mercado, asociación, giro del negocio, código CEP; importación con vista previa, respaldo previo y reporte |
+| Bahías | [`apps-script/bahias/`](apps-script/bahias/) | Datos del puesto comercial: mercado, asociación, giro del negocio, código CEP (Código Electrónico de Pago); importación con vista previa, respaldo previo y reporte |
 | Patente Municipal | [`apps-script/patente-municipal/`](apps-script/patente-municipal/) | Deuda por año e impuesto; carga por CSV desde Drive con disparador diario; ETL de pagos; claves en propiedades del script; estados adicionales |
 
 ## Estructura del repositorio
@@ -216,6 +216,7 @@ Un mismo sistema desplegado para dos líneas de cobro. Cada instancia tiene su p
 ├── pruebas/                        pruebas automáticas del ETL (Node, sin dependencias)
 ├── .github/                        verificación automática y plantilla de cambios
 ├── CHANGELOG.md                    historial de cambios
+├── AVISO.md                        aviso de uso y propiedad intelectual
 └── SEGURIDAD.md                    qué nunca se sube
 ```
 
@@ -283,3 +284,5 @@ Ver [`CHANGELOG.md`](CHANGELOG.md). Los cambios se revisan con la lista de la pl
 ## Datos y seguridad
 
 Este repositorio **no contiene datos de contribuyentes, claves ni respaldos**. Las bases de datos se guardan en el almacenamiento institucional. Las claves se leen de las propiedades del script. Ver [`SEGURIDAD.md`](SEGURIDAD.md).
+
+Aviso de uso y propiedad intelectual: [`AVISO.md`](AVISO.md).
