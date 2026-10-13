@@ -5,7 +5,8 @@ Revisa tres cosas y falla (código 1) si encuentra algo:
   1. Archivos que nunca deben subirse (.pbix, datos, credenciales, .clasp.json).
   2. Datos sensibles en texto: identificaciones de 10 o 13 dígitos entre comillas
      (salvo ficticias permitidas), nombres de servidor y correos personales.
-  3. Enlaces relativos rotos en los archivos Markdown.
+  3. Consultas SQL sin el nombre o el encabezado estándar.
+  4. Enlaces relativos rotos en los archivos Markdown.
 Uso: python3 .github/scripts/verificar.py
 """
 import os, re, subprocess, sys
@@ -50,6 +51,18 @@ def main():
                 for m in PATRON_ID.finditer(linea):
                     if m.group(1) not in FICTICIAS and not re.fullmatch(r"0+", m.group(1)) and set(m.group(1)) != {"9"}:
                         errores.append(f"{f}:{n}: posible RUC o cédula entre comillas")
+    # Convención de las consultas SQL: nombre tema_vAAAAMM.sql y encabezado estándar
+    for f in [x for x in lista if x.startswith("consultas/") and x.endswith(".sql") or "/consultas/" in x and x.endswith(".sql")]:
+        nombre = os.path.basename(f)
+        if nombre == "_plantilla.sql":
+            continue
+        if not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*_v\d{6}\.sql", nombre):
+            errores.append(f"{f}: el nombre debe ser tema-en-minusculas_vAAAAMM.sql")
+        with open(os.path.join(RAIZ, f), encoding="utf-8", errors="ignore") as fh:
+            cabecera = fh.read(3000)
+        for campo in ("CONSULTA:", "Qué responde", "Bases de origen", "Granularidad", "Versión"):
+            if campo not in cabecera:
+                errores.append(f"{f}: falta «{campo}» en el encabezado")
     # Enlaces relativos en Markdown
     for f in [x for x in lista if x.endswith(".md")]:
         with open(os.path.join(RAIZ, f), encoding="utf-8") as fh:

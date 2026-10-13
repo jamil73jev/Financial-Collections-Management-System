@@ -2,6 +2,13 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Las versiones siguen `MAYOR.MENOR.PARCHE`.
 
+## [1.1.0] - 2026-10-13
+
+### Agregado
+- 17 pruebas automáticas del ETL que cargan el código real de Apps Script (`npm test`) y corren en GitHub.
+- Capturas de la interfaz (instancia Bahías) con datos ficticios en `docs/img/`.
+- Hallazgo documentado: 13 funciones duplicadas en Patente Municipal, 10 con contenido distinto.
+
 ## [1.0.0] - 2026-10-13
 
 Primera versión presentada de forma profesional.

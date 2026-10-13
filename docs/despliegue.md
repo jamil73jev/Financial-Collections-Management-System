@@ -15,3 +15,7 @@
 8. Verificar con `?health=1` en la URL de la aplicación.
 
 Solo Patente Municipal: `installSecrets` (`SecretsService.gs`) guarda una clave en las propiedades del script. La usaba el módulo heredado `PowerBIService.gs`; la conexión directa con Power BI se eliminó (`doPost` ya no existe), así que el flujo actual no la necesita.
+
+## Pruebas
+
+La lógica de importación se prueba sin desplegar nada: `npm test` (Node 22 o superior) carga los archivos `.gs` reales con las APIs de Google simuladas y comprueba la normalización de identificaciones e importes, la vista previa de Bahías y el análisis de CSV de Patente Municipal. La misma prueba corre en GitHub en cada cambio.

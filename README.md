@@ -12,7 +12,7 @@ ETL y aplicación web para la cobranza municipal. Toma la deuda desde Power BI, 
 
 ## Contenido
 
-[Qué hace](#qué-hace) · [Flujo de datos (ETL)](#flujo-de-datos-etl) · [Arquitectura](#arquitectura) · [Flujo de trabajo](#flujo-de-trabajo) · [Ciclo de vida del expediente](#ciclo-de-vida-del-expediente) · [Alertas](#alertas) · [Roles y permisos](#roles-y-permisos) · [Instancias](#instancias) · [Estructura](#estructura-del-repositorio) · [Ejemplo](#ejemplo-con-datos-ficticios) · [Consultas SQL](#consultas-sql) · [Documentación](#documentación) · [Relacionados](#repositorios-relacionados) · [Seguridad](#datos-y-seguridad)
+[Qué hace](#qué-hace) · [Flujo de datos (ETL)](#flujo-de-datos-etl) · [Arquitectura](#arquitectura) · [Flujo de trabajo](#flujo-de-trabajo) · [Ciclo de vida del expediente](#ciclo-de-vida-del-expediente) · [Alertas](#alertas) · [Roles y permisos](#roles-y-permisos) · [Instancias](#instancias) · [Estructura](#estructura-del-repositorio) · [Pantallas](#pantallas) · [Ejemplo](#ejemplo-con-datos-ficticios) · [Consultas SQL](#consultas-sql) · [Documentación](#documentación) · [Relacionados](#repositorios-relacionados) · [Seguridad](#datos-y-seguridad)
 
 ## Qué hace
 
@@ -211,11 +211,23 @@ Un mismo sistema desplegado para dos líneas de cobro. Cada instancia tiene su p
 │   ├── arquitectura-y-modulos.md   módulos y automatizaciones
 │   ├── guia-etl.md                 guía rápida del ETL
 │   ├── despliegue.md               instalación paso a paso
+│   ├── img/                        capturas con datos ficticios
 │   └── pendientes-tecnicos.md      hallazgos y recomendaciones
+├── pruebas/                        pruebas automáticas del ETL (Node, sin dependencias)
 ├── .github/                        verificación automática y plantilla de cambios
 ├── CHANGELOG.md                    historial de cambios
 └── SEGURIDAD.md                    qué nunca se sube
 ```
+
+## Pantallas
+
+Capturas de la instancia Bahías con datos ficticios (cada una lleva la marca «DATOS FICTICIOS»).
+
+| Inicio de sesión | Tablero |
+|---|---|
+| ![Inicio de sesión de SIGECO](docs/img/bahias-inicio-de-sesion.png) | ![Tablero de indicadores de SIGECO](docs/img/bahias-tablero.png) |
+
+![Listado de expedientes y carga ETL de SIGECO](docs/img/bahias-expedientes.png)
 
 ## Ejemplo con datos ficticios
 
