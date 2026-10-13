@@ -1,4 +1,4 @@
-# SIGECO: Sistema Integral de Gestión de Cobranza
+# Sistema Integral de Gestión y Control de Cobranzas 
 
 ETL y aplicación web para la cobranza municipal. Toma la deuda desde Power BI, la procesa en Google Apps Script, la guarda en Google Sheets y la entrega en una aplicación web (HTML) para gestionar expedientes, gestiones, pagos, alertas y bitácora de auditoría.
 
