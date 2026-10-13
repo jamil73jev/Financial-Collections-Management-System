@@ -28,12 +28,65 @@ Describe **solo la estructura** (hojas y columnas) de la base de cada instancia,
 - `CONTRIBUYENTES` se organiza por año de solicitud e impuesto: `AÑO_SOLICITUD`, `TIPO_IMPUESTO`, `TIPO_PERSONA`, `REPRESENTANTE_LEGAL`, valores de impuesto, interés, multa y recargo.
 - Hojas de intercambio con Power BI: `DATA_POWERBI_IMPORT`, `DATA_POWERBI_IMPORT_CONTRIBUYEN` y `DATA_POWERBI_IMPORT_PAGOS`. Esta última trae el detalle de recaudación (canal de pago, banco, estado de cobro y sumas de valores pagados, coactiva, convenio y reversos).
 
-## Relaciones
+## Diagrama entidad-relación
 
-```
-CONTRIBUYENTES (RUC) ──► EXPEDIENTES (ID_EXPEDIENTE) ──┬─► GESTIONES
-                                                       ├─► PAGOS
-                                                       ├─► SEGUIMIENTO
-                                                       └─► EXPEDIENTES_CERRADOS (al cerrar)
-Toda modificación ──► BITACORA
+```mermaid
+erDiagram
+    CONTRIBUYENTES ||--o{ EXPEDIENTES : "RUC"
+    USUARIOS ||--o{ EXPEDIENTES : "FUNCIONARIO_ASIGNADO"
+    EXPEDIENTES ||--o{ GESTIONES : "ID_EXPEDIENTE"
+    EXPEDIENTES ||--o{ PAGOS : "ID_EXPEDIENTE"
+    EXPEDIENTES ||--o| SEGUIMIENTO : "ID_EXPEDIENTE"
+    EXPEDIENTES ||--o| EXPEDIENTES_CERRADOS : "al cerrar"
+    EXPEDIENTES ||--o{ BITACORA : "ID_EXPEDIENTE"
+
+    CONTRIBUYENTES {
+        string RUC PK
+        string NOMBRE_CONTRIBUYENTE
+        number TOTAL_DEUDA
+        date FECHA_CARGA
+    }
+    USUARIOS {
+        string ID_USUARIO PK
+        string CORREO_INSTITUCIONAL
+        string ROL
+        string ESTADO
+    }
+    EXPEDIENTES {
+        string ID_EXPEDIENTE PK
+        string RUC FK
+        string ESTADO_EXPEDIENTE
+        string PRIORIDAD
+        number SALDO_PENDIENTE
+        string ALERTA_ESTADO
+    }
+    GESTIONES {
+        string ID_GESTION PK
+        string ID_EXPEDIENTE FK
+        string TIPO_GESTION
+        string RESULTADO
+        date FECHA_PROXIMA_GESTION
+    }
+    PAGOS {
+        string ID_PAGO PK
+        string ID_EXPEDIENTE FK
+        number MONTO_PAGADO
+        string TIPO_PAGO
+    }
+    SEGUIMIENTO {
+        string ID_EXPEDIENTE FK
+        string ALERTA_ESTADO
+        number DIAS_SIN_MOVIMIENTO
+    }
+    EXPEDIENTES_CERRADOS {
+        string ID_EXPEDIENTE FK
+        string MOTIVO_CIERRE
+        string CERRADO_POR
+    }
+    BITACORA {
+        string ID_LOG PK
+        string ID_EXPEDIENTE FK
+        string USUARIO
+        string ACCION
+    }
 ```

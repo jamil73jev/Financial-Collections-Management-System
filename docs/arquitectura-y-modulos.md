@@ -9,6 +9,7 @@ SIGECO es una aplicación web de Google Apps Script (`doGet` en `Code.gs` sirve 
 | Administrador | 4 | Todo, incluida la gestión de usuarios y la configuración |
 | Supervisor | 3 | Ve todos los expedientes y asigna |
 | Gestor | 2 | Ve y gestiona solo sus expedientes |
+| Auditor | 1 | Consulta de bitácora |
 
 Los permisos por acción se definen en `Constants.gs`.
 
